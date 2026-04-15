@@ -3,338 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RAPTOR CARWASH - Empleados</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: Arial, sans-serif;
-            background: #f5f5f5;
-        }
-        
-        .app-container {
-            display: flex;
-            min-height: 100vh;
-        }
-        
-        .sidebar {
-            width: 250px;
-            background: #1a1a2e;
-            color: white;
-            padding: 20px;
-        }
-        
-        .main-content {
-            flex: 1;
-            padding: 20px;
-        }
-        
-        .nav-menu {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin: 20px 0;
-        }
-        
-        .nav-item {
-            background: transparent;
-            color: white;
-            border: none;
-            padding: 10px;
-            text-align: left;
-            cursor: pointer;
-            border-radius: 5px;
-        }
-        
-        .nav-item.active {
-            background: #e94560;
-        }
-        
-        .logout-btn {
-            width: 100%;
-            padding: 10px;
-            background: #dc3545;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        
-        .tab-content {
-            display: none;
-        }
-        
-        .tab-content.active {
-            display: block;
-        }
-        
-        .form-group {
-            margin-bottom: 15px;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        
-        input, select, textarea {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-        }
-        
-        button {
-            background: #e94560;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        
-        table {
-            width: 100%;
-            background: white;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        
-        th, td {
-            padding: 10px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-        
-        th {
-            background: #f8f9fa;
-        }
-        
-        .stats-summary {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-        }
-        
-        .stat-card {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            text-align: center;
-        }
-        
-        .stat-value {
-            font-size: 28px;
-            font-weight: bold;
-            color: #e94560;
-            margin-top: 10px;
-        }
-        
-        .form-section {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            max-width: 500px;
-        }
-        
-        h1 {
-            margin-bottom: 20px;
-        }
-    </style>
+    <title>RAPTOR CARWASH - Empleado</title>
+    <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
     <div class="app-container">
         <aside class="sidebar">
             <div class="logo">
-                <h2>RAPTOR CARWASH</h2>
-                <p>Panel de Empleado</p>
-                <p id="userInfo" style="font-size: 12px; margin-top: 10px;"></p>
+                <h2>🦅 RAPTOR CARWASH</h2>
+                <p>Panel Empleado</p>
+                <p id="userInfo"></p>
             </div>
-            <nav class="nav-menu">
-                <button class="nav-item active" data-tab="registro">Registrar Lavado</button>
-                <button class="nav-item" data-tab="historial">Mi Historial</button>
+            <nav>
+                <button class="nav-btn active" onclick="mostrarSeccionEmpleado('registro')">📝 Registrar Lavado</button>
+                <button class="nav-btn" onclick="mostrarSeccionEmpleado('historial')">📜 Mi Historial</button>
             </nav>
-            <button id="logoutBtn" class="logout-btn">Cerrar Sesión</button>
+            <button class="logout-btn" onclick="cerrarSesion()">🚪 Cerrar Sesión</button>
         </aside>
-
+        
         <main class="main-content">
-            <div id="registro" class="tab-content active">
-                <h1>Registrar Nuevo Lavado</h1>
-                <div class="form-section">
-                    <form id="lavadoForm">
-                        <div class="form-group">
-                            <label>Modelo del Auto:</label>
-                            <input type="text" id="modeloAuto" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Matrícula:</label>
-                            <input type="text" id="matricula" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Tipo de Servicio:</label>
-                            <select id="servicioId" required>
-                                <option value="">Seleccionar</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Observaciones:</label>
-                            <textarea id="observaciones" rows="3"></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label>Precio Final:</label>
-                            <input type="number" id="precioFinal" readonly>
-                        </div>
-                        <button type="submit">Registrar Lavado</button>
-                    </form>
+            <div id="empleado-seccion-registro" class="seccion active">
+                <h1>Registrar Lavado</h1>
+                <div class="card">
+                    <input type="text" id="modeloAuto" placeholder="Modelo del auto">
+                    <input type="text" id="matriculaAuto" placeholder="Matrícula">
+                    <select id="servicioSelect">
+                        <option value="">Cargando servicios...</option>
+                    </select>
+                    <input type="number" id="precioFinal" placeholder="Precio" readonly>
+                    <textarea id="observaciones" placeholder="Observaciones"></textarea>
+                    <button onclick="registrarLavado()">Registrar Lavado</button>
                 </div>
             </div>
-
-            <div id="historial" class="tab-content">
-                <h1>Mi Historial de Lavados</h1>
-                <div class="filters">
-                    <input type="date" id="filtroFecha">
-                </div>
-                <div id="historialList"></div>
-                <div class="stats-summary">
-                    <div class="stat-card">
-                        <h3>Total Comisiones</h3>
-                        <p id="totalComisiones" class="stat-value">$0</p>
-                    </div>
-                    <div class="stat-card">
-                        <h3>Lavados Realizados</h3>
-                        <p id="totalLavados" class="stat-value">0</p>
-                    </div>
+            
+            <div id="empleado-seccion-historial" class="seccion">
+                <h1>Mi Historial</h1>
+                <div class="stats-grid" id="statsEmpleado"></div>
+                <div class="card">
+                    <table class="data-table">
+                        <thead><tr><th>Fecha</th><th>Modelo</th><th>Matrícula</th><th>Servicio</th><th>Precio</th><th>Comisión</th></tr></thead>
+                        <tbody id="miHistorial"></tbody>
+                    </table>
                 </div>
             </div>
         </main>
     </div>
-
-    <script>
-        const SUPABASE_URL = 'https://ldalildhdukyjnvmjlsg.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkYWxpbGRoZHVreWpudm1qbHNnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNzcxMTYsImV4cCI6MjA5MTg1MzExNn0.f-sLoQgbtBfqmoPweJ0am7pnCIGiaZhkGaAjc_s8Y8A';
-        
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        
-        // Verificar sesión
-        const usuarioData = sessionStorage.getItem('usuario');
-        if (!usuarioData) {
-            window.location.href = 'login.html';
-        }
-        
-        const usuario = JSON.parse(usuarioData);
-        document.getElementById('userInfo').innerHTML = `👤 ${usuario.nombre}`;
-        
-        // Cargar servicios desde localStorage
-        let servicios = JSON.parse(localStorage.getItem('servicios') || '[]');
-        
-        const selectServicio = document.getElementById('servicioId');
-        servicios.forEach(s => {
-            const option = document.createElement('option');
-            option.value = s.id;
-            option.textContent = `${s.tipo === 'auto' ? '🚗' : '🏍️'} ${s.nombre} - $${s.precio_venta}`;
-            option.dataset.precio = s.precio_venta;
-            option.dataset.comision = s.comision_empleado;
-            selectServicio.appendChild(option);
-        });
-        
-        selectServicio.onchange = function() {
-            const selected = this.options[this.selectedIndex];
-            const precio = selected.dataset.precio;
-            document.getElementById('precioFinal').value = precio;
-        };
-        
-        // Registrar lavado en Supabase
-        document.getElementById('lavadoForm').onsubmit = async function(e) {
-            e.preventDefault();
-            
-            const servicioId = parseInt(document.getElementById('servicioId').value);
-            const servicio = servicios.find(s => s.id === servicioId);
-            
-            const lavado = {
-                empleado_id: usuario.username,
-                servicio_id: servicioId,
-                modelo_auto: document.getElementById('modeloAuto').value,
-                matricula: document.getElementById('matricula').value,
-                observaciones: document.getElementById('observaciones').value,
-                precio_final: parseFloat(document.getElementById('precioFinal').value),
-                comision_ganada: servicio.comision_empleado,
-                fecha: new Date().toISOString()
-            };
-            
-            const { error } = await supabase.from('lavados').insert([lavado]);
-            
-            if (error) {
-                alert('Error: ' + error.message);
-            } else {
-                alert('✅ Lavado registrado correctamente');
-                this.reset();
-                loadHistorial();
-            }
-        };
-        
-        // Cargar historial personal
-        async function loadHistorial() {
-            const { data: lavados } = await supabase
-                .from('lavados')
-                .select('*')
-                .eq('empleado_id', usuario.username)
-                .order('fecha', { ascending: false });
-            
-            if (lavados) {
-                const totalComisiones = lavados.reduce((sum, l) => sum + l.comision_ganada, 0);
-                document.getElementById('totalComisiones').innerHTML = `$${totalComisiones}`;
-                document.getElementById('totalLavados').innerHTML = lavados.length;
-                
-                const html = `
-                    <table>
-                        <thead>
-                            <tr><th>Fecha</th><th>Modelo</th><th>Matrícula</th><th>Servicio</th><th>Precio</th><th>Comisión</th><th>Observaciones</th></tr>
-                        </thead>
-                        <tbody>
-                            ${lavados.map(l => `
-                                <tr>
-                                    <td>${new Date(l.fecha).toLocaleDateString()}</td>
-                                    <td>${l.modelo_auto}</td>
-                                    <td>${l.matricula}</td>
-                                    <td>${servicios.find(s => s.id === l.servicio_id)?.nombre || 'N/A'}</td>
-                                    <td>$${l.precio_final}</td>
-                                    <td>$${l.comision_ganada}</td>
-                                    <td>${l.observaciones || '-'}</td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                `;
-                document.getElementById('historialList').innerHTML = html;
-            }
-        }
-        
-        // Navegación
-        document.querySelectorAll('.nav-item').forEach(btn => {
-            btn.onclick = function() {
-                document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-                document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-                this.classList.add('active');
-                document.getElementById(this.dataset.tab).classList.add('active');
-                if (this.dataset.tab === 'historial') loadHistorial();
-            };
-        });
-        
-        document.getElementById('logoutBtn').onclick = () => {
-            sessionStorage.clear();
-            window.location.href = 'login.html';
-        };
-        
-        loadHistorial();
-    </script>
+    <script src="config.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>

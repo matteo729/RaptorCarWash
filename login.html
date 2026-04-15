@@ -12,7 +12,7 @@
         }
         
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: Arial, sans-serif;
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             min-height: 100vh;
             display: flex;
@@ -22,7 +22,7 @@
         
         .login-container {
             width: 100%;
-            max-width: 450px;
+            max-width: 400px;
             padding: 20px;
         }
         
@@ -37,7 +37,6 @@
             text-align: center;
             color: #1a1a2e;
             margin-bottom: 0.5rem;
-            font-size: 1.8rem;
         }
         
         .login-subtitle {
@@ -47,49 +46,13 @@
             font-size: 0.9rem;
         }
         
-        .tabs {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 2rem;
-            border-bottom: 2px solid #eee;
-        }
-        
-        .tab-btn {
-            flex: 1;
-            padding: 0.75rem;
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 500;
-            color: #666;
-            transition: all 0.3s;
-        }
-        
-        .tab-btn.active {
-            color: #e94560;
-            border-bottom: 2px solid #e94560;
-            margin-bottom: -2px;
-        }
-        
-        .tab-content {
-            display: none;
-        }
-        
-        .tab-content.active {
-            display: block;
-        }
-        
-        .form-group {
-            margin-bottom: 1rem;
-        }
-        
         input {
             width: 100%;
-            padding: 0.75rem;
+            padding: 12px;
+            margin-bottom: 15px;
             border: 1px solid #ddd;
             border-radius: 6px;
-            font-size: 1rem;
+            font-size: 16px;
             box-sizing: border-box;
         }
         
@@ -102,49 +65,56 @@
             width: 100%;
             background: #e94560;
             color: white;
-            padding: 0.75rem;
+            padding: 12px;
             border: none;
             border-radius: 6px;
             cursor: pointer;
-            font-size: 1rem;
-            font-weight: 500;
-            margin-top: 1rem;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 10px;
         }
         
         button:hover {
             background: #d63a55;
         }
         
-        .message {
-            padding: 0.75rem;
-            border-radius: 6px;
-            margin-bottom: 1rem;
-            font-size: 0.9rem;
+        .btn-secondary {
+            background: #6c757d;
         }
         
-        .error-message {
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .message {
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        
+        .error {
             background: #f8d7da;
             color: #721c24;
             border: 1px solid #f5c6cb;
         }
         
-        .success-message {
+        .success {
             background: #d4edda;
             color: #155724;
             border: 1px solid #c3e6cb;
         }
         
-        .info-text {
-            text-align: center;
-            margin-top: 1rem;
-            font-size: 0.85rem;
-            color: #666;
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
         }
         
-        .loading {
+        .divider {
             text-align: center;
-            color: #e94560;
-            margin-top: 1rem;
+            margin: 20px 0;
+            color: #999;
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -155,170 +125,158 @@
             <h1>RAPTOR CARWASH</h1>
             <p class="login-subtitle">Sistema de Gestión</p>
             
-            <div class="tabs">
-                <button class="tab-btn active" onclick="switchTab('login')">Iniciar Sesión</button>
-                <button class="tab-btn" onclick="switchTab('register')">Registrarse</button>
+            <div id="messageBox"></div>
+            
+            <!-- Formulario de Login -->
+            <div id="loginSection">
+                <h3 style="margin-bottom: 15px;">Iniciar Sesión</h3>
+                <input type="email" id="loginEmail" placeholder="Email" autocomplete="email">
+                <input type="password" id="loginPassword" placeholder="Contraseña" autocomplete="current-password">
+                <button id="loginBtn">Iniciar Sesión</button>
+                <div class="divider">o</div>
+                <button id="showRegisterBtn" class="btn-secondary">Registrarse</button>
             </div>
             
-            <div id="messageContainer"></div>
-            
-            <!-- Login Tab -->
-            <div id="loginTab" class="tab-content active">
-                <form id="loginForm" onsubmit="handleLogin(event)">
-                    <div class="form-group">
-                        <input type="email" id="loginEmail" placeholder="Email" required>
-                    </div>
-                    <div class="form-group">
-                        <input type="password" id="loginPassword" placeholder="Contraseña" required>
-                    </div>
-                    <button type="submit">Iniciar Sesión</button>
-                </form>
-            </div>
-            
-            <!-- Register Tab -->
-            <div id="registerTab" class="tab-content">
-                <form id="registerForm" onsubmit="handleRegister(event)">
-                    <div class="form-group">
-                        <input type="text" id="regNombre" placeholder="Nombre completo" required>
-                    </div>
-                    <div class="form-group">
-                        <input type="email" id="regEmail" placeholder="Email" required>
-                    </div>
-                    <div class="form-group">
-                        <input type="password" id="regPassword" placeholder="Contraseña" required>
-                    </div>
-                    <button type="submit">Registrarse</button>
-                </form>
-                <p class="info-text">⚠️ El primer usuario registrado será el Administrador</p>
+            <!-- Formulario de Registro (oculto inicialmente) -->
+            <div id="registerSection" style="display: none;">
+                <h3 style="margin-bottom: 15px;">Registrarse</h3>
+                <input type="text" id="regNombre" placeholder="Nombre completo">
+                <input type="email" id="regEmail" placeholder="Email">
+                <input type="password" id="regPassword" placeholder="Contraseña (mínimo 6 caracteres)">
+                <button id="registerBtn">Registrarse</button>
+                <div class="divider">o</div>
+                <button id="showLoginBtn" class="btn-secondary">Volver al Login</button>
             </div>
         </div>
     </div>
-    
+
     <script>
-        // ==================== CONFIGURACIÓN DE SUPABASE CON TUS DATOS ====================
+        // Configuración de Supabase con tus datos
         const SUPABASE_URL = 'https://ldalildhdukyjnvmjlsg.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkYWxpbGRoZHVreWpudm1qbHNnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNzcxMTYsImV4cCI6MjA5MTg1MzExNn0.f-sLoQgbtBfqmoPweJ0am7pnCIGiaZhkGaAjc_s8Y8A';
         
-        console.log('Conectando a Supabase...');
-        console.log('URL:', SUPABASE_URL);
-        
+        // Inicializar Supabase
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
-        // Probar conexión a Supabase
-        async function testConnection() {
-            try {
-                const { data, error } = await supabase.from('servicios').select('count', { count: 'exact', head: true });
-                if (error) {
-                    console.error('Error en tabla servicios:', error);
-                    // Si la tabla no existe, mostramos mensaje pero no como error fatal
-                    if (error.code === '42P01') {
-                        console.warn('La tabla servicios no existe aún. Debes ejecutar el SQL de creación.');
-                        return true; // La conexión funciona, solo falta crear tablas
-                    }
-                    throw error;
-                }
-                console.log('✅ Conexión a Supabase exitosa');
-                return true;
-            } catch (error) {
-                console.error('❌ Error de conexión a Supabase:', error);
-                document.getElementById('messageContainer').innerHTML = `
-                    <div class="message error-message">
-                        Error de conexión: ${error.message}. Verifica tu conexión a internet.
-                    </div>
-                `;
-                return false;
-            }
-        }
-        
-        // Cambiar entre tabs
-        window.switchTab = function(tab) {
-            const loginTab = document.getElementById('loginTab');
-            const registerTab = document.getElementById('registerTab');
-            const tabs = document.querySelectorAll('.tab-btn');
-            
-            if (tab === 'login') {
-                loginTab.classList.add('active');
-                registerTab.classList.remove('active');
-                tabs[0].classList.add('active');
-                tabs[1].classList.remove('active');
-            } else {
-                loginTab.classList.remove('active');
-                registerTab.classList.add('active');
-                tabs[0].classList.remove('active');
-                tabs[1].classList.add('active');
-            }
-        };
-        
-        // Mostrar mensajes
-        function showMessage(message, type) {
-            const container = document.getElementById('messageContainer');
-            container.innerHTML = `<div class="message ${type}-message">${message}</div>`;
+        // Mostrar mensaje
+        function showMessage(text, type) {
+            const box = document.getElementById('messageBox');
+            box.innerHTML = `<div class="message ${type}">${text}</div>`;
             setTimeout(() => {
-                if (container.innerHTML === `<div class="message ${type}-message">${message}</div>`) {
-                    container.innerHTML = '';
+                if (box.innerHTML === `<div class="message ${type}">${text}</div>`) {
+                    box.innerHTML = '';
                 }
             }, 5000);
         }
         
-        // Handle Register
-        window.handleRegister = async function(event) {
-            event.preventDefault();
+        // Cambiar entre login y registro
+        document.getElementById('showRegisterBtn').onclick = function() {
+            document.getElementById('loginSection').style.display = 'none';
+            document.getElementById('registerSection').style.display = 'block';
+            document.getElementById('messageBox').innerHTML = '';
+        };
+        
+        document.getElementById('showLoginBtn').onclick = function() {
+            document.getElementById('loginSection').style.display = 'block';
+            document.getElementById('registerSection').style.display = 'none';
+            document.getElementById('messageBox').innerHTML = '';
+        };
+        
+        // Función de Login
+        document.getElementById('loginBtn').onclick = async function() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
             
+            if (!email || !password) {
+                showMessage('Por favor, completa todos los campos', 'error');
+                return;
+            }
+            
+            showMessage('Iniciando sesión...', 'info');
+            
+            try {
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+                
+                if (error) {
+                    showMessage('Error: ' + error.message, 'error');
+                    return;
+                }
+                
+                if (data.user) {
+                    showMessage('¡Login exitoso! Redirigiendo...', 'success');
+                    
+                    // Verificar si es admin o empleado
+                    const { data: empleado } = await supabase
+                        .from('empleados')
+                        .select('*')
+                        .eq('user_id', data.user.id)
+                        .single();
+                    
+                    setTimeout(() => {
+                        if (empleado) {
+                            window.location.href = 'empleados.html';
+                        } else {
+                            window.location.href = 'admin.html';
+                        }
+                    }, 1500);
+                }
+                
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+            }
+        };
+        
+        // Función de Registro
+        document.getElementById('registerBtn').onclick = async function() {
             const nombre = document.getElementById('regNombre').value;
             const email = document.getElementById('regEmail').value;
             const password = document.getElementById('regPassword').value;
+            
+            if (!nombre || !email || !password) {
+                showMessage('Por favor, completa todos los campos', 'error');
+                return;
+            }
             
             if (password.length < 6) {
                 showMessage('La contraseña debe tener al menos 6 caracteres', 'error');
                 return;
             }
             
-            console.log('Intentando registrar:', email);
+            showMessage('Registrando usuario...', 'info');
             
             try {
-                // Crear usuario en Supabase Auth
+                // Crear usuario
                 const { data: authData, error: signUpError } = await supabase.auth.signUp({
                     email: email,
                     password: password,
                     options: {
-                        data: {
-                            full_name: nombre
-                        }
+                        data: { full_name: nombre }
                     }
                 });
                 
                 if (signUpError) {
-                    console.error('Error de registro:', signUpError);
-                    if (signUpError.message.includes('User already registered')) {
-                        throw new Error('Este email ya está registrado');
-                    }
-                    throw signUpError;
-                }
-                
-                if (!authData.user) {
-                    throw new Error('No se pudo crear el usuario');
-                }
-                
-                console.log('Usuario creado exitosamente:', authData.user.id);
-                
-                // Verificar si es el primer usuario (admin)
-                const { count, error: countError } = await supabase
-                    .from('empleados')
-                    .select('*', { count: 'exact', head: true });
-                
-                // Si hay error y es porque la tabla no existe, crear la tabla primero
-                if (countError && countError.code === '42P01') {
-                    console.warn('La tabla empleados no existe. Debes ejecutar el SQL de creación en Supabase.');
-                    showMessage('⚠️ Error: Las tablas no están creadas. Por favor, ejecuta el SQL de creación en Supabase.', 'error');
+                    showMessage('Error: ' + signUpError.message, 'error');
                     return;
                 }
                 
-                // Si es el primer usuario, NO lo agregamos a empleados (será admin)
+                if (!authData.user) {
+                    showMessage('Error al crear usuario', 'error');
+                    return;
+                }
+                
+                // Verificar si es el primer usuario
+                const { count } = await supabase
+                    .from('empleados')
+                    .select('*', { count: 'exact', head: true });
+                
+                // Si es el primer usuario, es admin (no se agrega a empleados)
                 if (count === 0) {
-                    console.log('✅ Primer usuario registrado - será Administrador');
                     showMessage('¡Administrador registrado exitosamente! Ahora puedes iniciar sesión.', 'success');
                 } else {
-                    // Si no es el primer usuario, lo agregamos como empleado
+                    // Agregar como empleado
                     const { error: empError } = await supabase
                         .from('empleados')
                         .insert([{
@@ -329,95 +287,45 @@
                         }]);
                     
                     if (empError) {
-                        console.error('Error al crear empleado:', empError);
-                        showMessage('Usuario creado pero hubo un error al asignar rol. Contacta al administrador.', 'error');
+                        showMessage('Usuario creado pero error al asignar rol', 'error');
                     } else {
                         showMessage('¡Empleado registrado exitosamente!', 'success');
                     }
                 }
                 
                 // Limpiar formulario
-                document.getElementById('registerForm').reset();
+                document.getElementById('regNombre').value = '';
+                document.getElementById('regEmail').value = '';
+                document.getElementById('regPassword').value = '';
                 
-                // Cambiar a login después de 2 segundos
+                // Mostrar formulario de login
                 setTimeout(() => {
-                    switchTab('login');
-                    showMessage('Ahora puedes iniciar sesión con tus credenciales', 'success');
+                    document.getElementById('showLoginBtn').click();
+                    showMessage('Ya puedes iniciar sesión con tus credenciales', 'success');
                 }, 2000);
                 
             } catch (error) {
-                console.error('Error detallado:', error);
                 showMessage('Error: ' + error.message, 'error');
             }
         };
         
-        // Handle Login
-        window.handleLogin = async function(event) {
-            event.preventDefault();
-            
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
-            
-            console.log('Intentando login:', email);
-            
-            try {
-                const { data, error } = await supabase.auth.signInWithPassword({
-                    email: email,
-                    password: password
-                });
-                
-                if (error) {
-                    console.error('Error de login:', error);
-                    if (error.message.includes('Invalid login credentials')) {
-                        throw new Error('Email o contraseña incorrectos');
-                    }
-                    throw error;
-                }
-                
-                if (!data.user) {
-                    throw new Error('No se pudo autenticar el usuario');
-                }
-                
-                console.log('Login exitoso:', data.user.email);
-                
-                // Verificar si es admin o empleado
-                const { data: empleado, error: empError } = await supabase
-                    .from('empleados')
-                    .select('*')
-                    .eq('user_id', data.user.id)
-                    .single();
-                
-                if (empError) {
-                    // Si hay error, asumimos que es admin (no está en tabla empleados)
-                    console.log('Usuario es ADMINISTRADOR');
-                    showMessage('Bienvenido Administrador', 'success');
-                    setTimeout(() => {
-                        window.location.href = 'admin.html';
-                    }, 1000);
-                } else if (empleado) {
-                    // Es empleado
-                    console.log('Usuario es EMPLEADO:', empleado.nombre);
-                    showMessage('Bienvenido ' + empleado.nombre, 'success');
-                    setTimeout(() => {
-                        window.location.href = 'empleados.html';
-                    }, 1000);
-                } else {
-                    // Por defecto, admin
-                    console.log('Usuario es ADMINISTRADOR (por defecto)');
-                    showMessage('Bienvenido Administrador', 'success');
-                    setTimeout(() => {
-                        window.location.href = 'admin.html';
-                    }, 1000);
-                }
-                
-            } catch (error) {
-                console.error('Error en login:', error);
-                showMessage('Error: ' + error.message, 'error');
+        // Permitir presionar Enter para login
+        const loginPassword = document.getElementById('loginPassword');
+        loginPassword.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('loginBtn').click();
             }
-        };
+        });
         
-        // Probar conexión al cargar la página
-        testConnection();
+        // Permitir presionar Enter para registro
+        const regPassword = document.getElementById('regPassword');
+        regPassword.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('registerBtn').click();
+            }
+        });
+        
+        console.log('✅ Aplicación lista. Configuración de Supabase cargada.');
     </script>
 </body>
 </html>

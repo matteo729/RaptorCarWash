@@ -2,1185 +2,132 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Raptor Car Wash - Administrador</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        body {
-            background: #0a0a0a;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            color: #e0e0e0;
-            min-height: 100vh;
-        }
-
-        .app-container {
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-
-        .header {
-            background: #0f0f0f;
-            padding: 16px;
-            border-bottom: 1px solid #2c2c2c;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .header h1 {
-            font-size: 1.5rem;
-            color: #dc2626;
-            margin-bottom: 4px;
-        }
-
-        .header p {
-            font-size: 0.75rem;
-            color: #6b7280;
-        }
-
-        .nav-bottom {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: #0f0f0f;
-            border-top: 1px solid #2c2c2c;
-            display: flex;
-            justify-content: space-around;
-            padding: 8px 0;
-            z-index: 100;
-        }
-
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-            padding: 8px 12px;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-            color: #6b7280;
-            font-size: 0.7rem;
-            flex: 1;
-            text-align: center;
-        }
-
-        .nav-item:hover {
-            background: #1a1a1a;
-        }
-
-        .nav-item.active {
-            color: #dc2626;
-            background: #1a1a1a;
-        }
-
-        .nav-icon {
-            font-size: 1.3rem;
-        }
-
-        .main-content {
-            padding: 16px;
-            padding-bottom: 80px;
-            flex: 1;
-        }
-
-        .card {
-            background: #1a1a1a;
-            border-radius: 16px;
-            padding: 16px;
-            margin-bottom: 16px;
-            border: 1px solid #2c2c2c;
-        }
-
-        .card-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 12px;
-            color: #eab308;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            margin-bottom: 16px;
-        }
-
-        .stat-card {
-            background: #1a1a1a;
-            padding: 16px;
-            border-radius: 16px;
-            border: 1px solid #2c2c2c;
-            text-align: center;
-        }
-
-        .stat-label {
-            font-size: 0.7rem;
-            color: #6b7280;
-            margin-bottom: 8px;
-        }
-
-        .stat-value {
-            font-size: 1.5rem;
-            font-weight: bold;
-        }
-
-        .positive {
-            color: #4ade80;
-        }
-
-        .negative {
-            color: #ef4444;
-        }
-
-        input, select, textarea {
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 12px;
-            background: #2a2a2a;
-            border: 1px solid #3f3f3f;
-            border-radius: 12px;
-            color: white;
-            font-size: 0.9rem;
-            font-family: inherit;
-        }
-
-        input:focus, select:focus, textarea:focus {
-            outline: none;
-            border-color: #dc2626;
-        }
-
-        button {
-            background: #3f3f46;
-            border: none;
-            color: white;
-            padding: 12px 20px;
-            border-radius: 12px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            width: 100%;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-family: inherit;
-            margin-bottom: 8px;
-        }
-
-        button:active {
-            transform: scale(0.97);
-        }
-
-        .btn-primary {
-            background: #dc2626;
-        }
-
-        .btn-success {
-            background: #16a34a;
-        }
-
-        .btn-warning {
-            background: #eab308;
-            color: #0a0a0a;
-        }
-
-        .btn-small {
-            width: auto;
-            padding: 6px 12px;
-            font-size: 0.75rem;
-            margin: 0;
-        }
-
-        .table-container {
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.8rem;
-        }
-
-        th {
-            text-align: left;
-            padding: 10px 8px;
-            color: #6b7280;
-            font-weight: 500;
-            border-bottom: 1px solid #2c2c2c;
-        }
-
-        td {
-            padding: 10px 8px;
-            border-bottom: 1px solid #2c2c2c;
-        }
-
-        .filters {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            margin-bottom: 16px;
-        }
-
-        .filters-row {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        .filters-row input, .filters-row select {
-            flex: 1;
-            margin-bottom: 0;
-            padding: 10px;
-        }
-
-        .panel {
-            display: none;
-        }
-
-        .panel.active {
-            display: block;
-        }
-
-        .login-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .login-box {
-            background: #1a1a1a;
-            border-radius: 24px;
-            padding: 32px 24px;
-            width: 100%;
-            max-width: 400px;
-            border: 1px solid #2c2c2c;
-        }
-
-        .login-box h2 {
-            font-size: 1.5rem;
-            margin-bottom: 24px;
-            text-align: center;
-            color: #dc2626;
-        }
-
-        canvas {
-            max-height: 250px;
-            width: 100% !important;
-        }
-
-        .recent-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid #2c2c2c;
-        }
-
-        .recent-info {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .recent-icon {
-            width: 36px;
-            height: 36px;
-            background: #2a2a2a;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1rem;
-        }
-
-        .badge {
-            background: #2a2a2a;
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 0.7rem;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 8px;
-        }
-
-        .icon-btn {
-            background: none;
-            width: auto;
-            padding: 4px 8px;
-            margin: 0;
-            color: #dc2626;
-        }
-
-        .icon-btn:hover {
-            background: #2a2a2a;
-            transform: none;
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        /* Botón flotante para crear admin */
-        .floating-btn {
-            position: fixed;
-            bottom: 80px;
-            right: 16px;
-            background: #1f2937;
-            color: #9ca3af;
-            width: auto;
-            padding: 8px 16px;
-            border-radius: 40px;
-            font-size: 0.7rem;
-            z-index: 200;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .floating-btn:hover {
-            background: #374151;
-            color: white;
-        }
-
-        @media (min-width: 768px) {
-            .main-content {
-                max-width: 1200px;
-                margin: 0 auto;
-                padding: 24px;
-            }
-            .stats-grid {
-                grid-template-columns: repeat(4, 1fr);
-            }
-            .filters {
-                flex-direction: row;
-                flex-wrap: wrap;
-                align-items: center;
-            }
-            .filters-row {
-                flex: 1;
-            }
-            .floating-btn {
-                bottom: 24px;
-                right: 24px;
-            }
-        }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAPTOR CARWASH - Administración</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <div id="loginContainer" class="login-container">
-        <div class="login-box">
-            <h2>Raptor Car Wash</h2>
-            <p style="text-align: center; margin-bottom: 24px; color: #6b7280;">Acceso Administrador</p>
-            <input type="email" id="loginEmail" placeholder="Correo electrónico">
-            <input type="password" id="loginPassword" placeholder="Contraseña">
-            <button id="loginBtn" class="btn-primary">Iniciar Sesión</button>
-        </div>
-    </div>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <h2>RAPTOR CARWASH</h2>
+                <p>Panel Administrativo</p>
+            </div>
+            <nav class="nav-menu">
+                <button class="nav-item active" data-tab="dashboard">
+                    📊 Dashboard
+                </button>
+                <button class="nav-item" data-tab="precios">
+                    💰 Gestión de Precios
+                </button>
+                <button class="nav-item" data-tab="empleados">
+                    👥 Gestión de Empleados
+                </button>
+                <button class="nav-item" data-tab="historial">
+                    📜 Historial de Lavados
+                </button>
+            </nav>
+            <button id="logoutBtn" class="logout-btn">Cerrar Sesión</button>
+        </aside>
 
-    <div id="appContainer" class="app-container" style="display: none;">
-        <div class="header">
-            <h1 id="pageTitle">Dashboard</h1>
-            <p>Panel de control principal</p>
-        </div>
-
-        <div class="main-content">
-            <!-- Panel Dashboard -->
-            <div id="dashboardPanel" class="panel active">
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Dashboard Tab -->
+            <div id="dashboard" class="tab-content active">
+                <h1>Dashboard</h1>
                 <div class="stats-grid">
                     <div class="stat-card">
-                        <div class="stat-label">Ingresos Totales</div>
-                        <div class="stat-value positive" id="totalIngresos">$0</div>
+                        <h3>Ganancias Mensuales</h3>
+                        <p id="gananciasMensuales" class="stat-value">$0</p>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-label">Gastos Totales</div>
-                        <div class="stat-value negative" id="totalGastos">$0</div>
+                        <h3>Gastos Mensuales</h3>
+                        <p id="gastosMensuales" class="stat-value">$0</p>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-label">Ganancia Neta</div>
-                        <div class="stat-value" id="gananciaNeta">$0</div>
+                        <h3>Ganancia Neta</h3>
+                        <p id="gananciaNeta" class="stat-value">$0</p>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-label">Total Lavados</div>
-                        <div class="stat-value" id="totalLavados">0</div>
+                        <h3>Total Lavados</h3>
+                        <p id="totalLavados" class="stat-value">0</p>
                     </div>
                 </div>
-
-                <div class="card">
-                    <div class="card-title">Ganancias por Empleado</div>
+                <div class="chart-container">
                     <canvas id="gananciasChart"></canvas>
                 </div>
-
-                <div class="card">
-                    <div class="card-title">Actividad Reciente</div>
-                    <div id="recentActivity"></div>
+                <div class="form-section">
+                    <h3>Registrar Gasto</h3>
+                    <form id="gastoForm">
+                        <input type="text" id="concepto" placeholder="Concepto" required>
+                        <input type="number" id="monto" placeholder="Monto" step="0.01" required>
+                        <button type="submit">Registrar Gasto</button>
+                    </form>
                 </div>
             </div>
 
-            <!-- Panel Empleados -->
-            <div id="employeesPanel" class="panel">
-                <div class="card">
-                    <div class="card-title">Agregar Empleado</div>
-                    <input type="text" id="empNombre" placeholder="Nombre completo">
-                    <input type="email" id="empEmail" placeholder="Correo electrónico">
-                    <input type="password" id="empPassword" placeholder="Contraseña temporal">
-                    <button id="crearEmpleadoBtn" class="btn-success">Agregar Empleado</button>
-                </div>
-
-                <div class="card">
-                    <div class="card-title">Lista de Empleados</div>
-                    <div class="table-container">
-                        <table>
-                            <thead>
-                                <tr><th>Nombre</th><th>Email</th><th>Lavados</th><th>Comisión</th><th></th></tr>
-                            </thead>
-                            <tbody id="empleadosList"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Panel Servicios -->
-            <div id="servicesPanel" class="panel">
-                <div class="card">
-                    <div class="card-title">Agregar Servicio</div>
-                    <input type="text" id="tipoNombre" placeholder="Nombre del servicio">
-                    <select id="tipoVehiculo">
-                        <option value="Auto">Auto</option>
-                        <option value="Moto">Moto</option>
+            <!-- Gestión de Precios Tab -->
+            <div id="precios" class="tab-content">
+                <h1>Gestión de Precios</h1>
+                <form id="servicioForm">
+                    <select id="tipoServicio" required>
+                        <option value="auto">Auto</option>
+                        <option value="moto">Moto</option>
                     </select>
-                    <input type="number" id="tipoPrecio" placeholder="Precio total" step="0.01">
-                    <input type="number" id="tipoComision" placeholder="Comisión del empleado" step="0.01">
-                    <button id="crearTipoBtn" class="btn-primary">Agregar Servicio</button>
-                </div>
-
-                <div class="card">
-                    <div class="card-title">Lista de Servicios</div>
-                    <div class="table-container">
-                        <table>
-                            <thead>
-                                <tr><th>Nombre</th><th>Tipo</th><th>Precio</th><th>Comisión</th><th></th></tr>
-                            </thead>
-                            <tbody id="tiposList"></tbody>
-                        </table>
-                    </div>
+                    <input type="text" id="nombreServicio" placeholder="Nombre del servicio" required>
+                    <input type="number" id="precioVenta" placeholder="Precio de venta" step="0.01" required>
+                    <input type="number" id="comisionEmpleado" placeholder="Comisión para empleado" step="0.01" required>
+                    <button type="submit">Agregar Servicio</button>
+                </form>
+                <div class="table-container">
+                    <h3>Servicios Activos</h3>
+                    <table id="serviciosTable">
+                        <thead>
+                            <tr><th>Tipo</th><th>Nombre</th><th>Precio Venta</th><th>Comisión</th><th>Acciones</th></tr>
+                        </thead>
+                        <tbody id="serviciosList"></tbody>
+                    </table>
                 </div>
             </div>
 
-            <!-- Panel Gastos -->
-            <div id="expensesPanel" class="panel">
-                <div class="card">
-                    <div class="card-title">Registrar Gasto</div>
-                    <input type="text" id="gastoConcepto" placeholder="Concepto">
-                    <select id="gastoCategoria">
-                        <option value="Agua">Agua</option>
-                        <option value="Electricidad">Electricidad</option>
-                        <option value="Productos">Productos</option>
-                        <option value="Mantenimiento">Mantenimiento</option>
-                        <option value="Sueldos">Sueldos</option>
-                        <option value="Otros">Otros</option>
+            <!-- Gestión de Empleados Tab -->
+            <div id="empleados" class="tab-content">
+                <h1>Gestión de Empleados</h1>
+                <form id="empleadoForm">
+                    <input type="text" id="nombreEmpleado" placeholder="Nombre completo" required>
+                    <input type="email" id="emailEmpleado" placeholder="Email" required>
+                    <input type="password" id="passwordEmpleado" placeholder="Contraseña" required>
+                    <button type="submit">Crear Empleado</button>
+                </form>
+                <div class="table-container">
+                    <h3>Empleados Registrados</h3>
+                    <table id="empleadosTable">
+                        <thead><tr><th>Nombre</th><th>Email</th><th>Estado</th><th>Acciones</th></tr></thead>
+                        <tbody id="empleadosList"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Historial Tab -->
+            <div id="historial" class="tab-content">
+                <h1>Historial de Lavados</h1>
+                <div class="filters">
+                    <input type="date" id="filtroFecha" placeholder="Filtrar por fecha">
+                    <select id="filtroEmpleado">
+                        <option value="">Todos los empleados</option>
                     </select>
-                    <input type="number" id="gastoMonto" placeholder="Monto" step="0.01">
-                    <input type="date" id="gastoFecha">
-                    <button id="registrarGastoBtn" class="btn-warning">Registrar Gasto</button>
                 </div>
-
-                <div class="card">
-                    <div class="card-title">Filtros</div>
-                    <div class="filters">
-                        <div class="filters-row">
-                            <input type="date" id="filtroFechaInicio" placeholder="Fecha inicio">
-                            <input type="date" id="filtroFechaFin" placeholder="Fecha fin">
-                        </div>
-                        <div class="filters-row">
-                            <select id="filtroCategoria">
-                                <option value="">Todas las categorías</option>
-                                <option value="Agua">Agua</option>
-                                <option value="Electricidad">Electricidad</option>
-                                <option value="Productos">Productos</option>
-                                <option value="Mantenimiento">Mantenimiento</option>
-                                <option value="Sueldos">Sueldos</option>
-                                <option value="Otros">Otros</option>
-                            </select>
-                            <button id="filtrarGastosBtn" class="btn-small">Filtrar</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-title">Historial de Gastos</div>
-                    <div class="table-container">
-                        <table>
-                            <thead>
-                                <tr><th>Concepto</th><th>Categoría</th><th>Monto</th><th>Fecha</th><th></th></tr>
-                            </thead>
-                            <tbody id="gastosList"></tbody>
-                        </table>
-                    </div>
-                    <div id="totalGastosFiltrados" style="margin-top: 16px; text-align: right; font-weight: bold;"></div>
+                <div class="table-container">
+                    <table id="historialTable">
+                        <thead><tr><th>Fecha</th><th>Empleado</th><th>Modelo</th><th>Matrícula</th><th>Servicio</th><th>Precio</th><th>Comisión</th></tr></thead>
+                        <tbody id="historialList"></tbody>
+                    </table>
                 </div>
             </div>
-
-            <!-- Panel Reportes -->
-            <div id="reportsPanel" class="panel">
-                <div class="card">
-                    <div class="card-title">Rendimiento por Empleado</div>
-                    <div class="table-container">
-                        <table>
-                            <thead>
-                                <tr><th>Empleado</th><th>Recaudado</th><th>Comisiones</th><th>Ganancia Local</th></tr>
-                            </thead>
-                            <tbody id="reporteEmpleados"></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-title">Estadísticas Mensuales</div>
-                    <div class="table-container">
-                        <table>
-                            <thead>
-                                <tr><th>Mes</th><th>Lavados</th><th>Ingresos</th><th>Gastos</th><th>Ganancia Neta</th></tr>
-                            </thead>
-                            <tbody id="estadisticasMensuales"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Mobile Bottom Navigation -->
-        <div class="nav-bottom">
-            <div class="nav-item active" data-nav="dashboard">
-                <span class="nav-icon">📊</span>
-                <span>Dashboard</span>
-            </div>
-            <div class="nav-item" data-nav="employees">
-                <span class="nav-icon">👥</span>
-                <span>Empleados</span>
-            </div>
-            <div class="nav-item" data-nav="services">
-                <span class="nav-icon">🧼</span>
-                <span>Servicios</span>
-            </div>
-            <div class="nav-item" data-nav="expenses">
-                <span class="nav-icon">💰</span>
-                <span>Gastos</span>
-            </div>
-            <div class="nav-item" data-nav="reports">
-                <span class="nav-icon">📈</span>
-                <span>Reportes</span>
-            </div>
-            <div class="nav-item" id="logoutMobileBtn">
-                <span class="nav-icon">🚪</span>
-                <span>Salir</span>
-            </div>
-        </div>
+        </main>
     </div>
-
-    <!-- Botón flotante para crear usuario Valentin -->
-    <div id="crearAdminFloatBtn" class="floating-btn">
-        👑 Crear Usuario Valentin
-    </div>
-
-    <script>
-        // ============================================
-        // CONFIGURACIÓN DE SUPABASE - CAMBIAR AQUÍ
-        // ============================================
-        const SUPABASE_URL = 'https://TU_PROYECTO.supabase.co';
-        const SUPABASE_ANON_KEY = 'TU_ANON_KEY';
-        
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        
-        let currentUser = null;
-        let gananciasChart = null;
-        let tiposLavadoCache = [];
-
-        // ============================================
-        // FUNCIÓN PARA CREAR USUARIO VALENTIN
-        // ============================================
-        async function crearUsuarioValentin() {
-            const email = 'valentin@raptorcarwash.com';
-            const password = 'kirita2025';
-            const nombre = 'Valentin';
-            
-            // Mostrar mensaje de carga
-            const btn = document.getElementById('crearAdminFloatBtn');
-            const textoOriginal = btn.innerHTML;
-            btn.innerHTML = '⏳ Creando usuario...';
-            btn.style.opacity = '0.7';
-            
-            try {
-                // Intentar registrar el usuario
-                const { data, error } = await supabase.auth.signUp({
-                    email: email,
-                    password: password
-                });
-                
-                if (error) {
-                    // Si el usuario ya existe, intentar login
-                    if (error.message.includes('already registered') || error.message.includes('User already registered')) {
-                        const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
-                            email: email,
-                            password: password
-                        });
-                        
-                        if (loginError) throw loginError;
-                        
-                        // Crear/actualizar perfil
-                        const { error: perfilError } = await supabase
-                            .from('perfiles')
-                            .upsert({ 
-                                id: loginData.user.id, 
-                                nombre: nombre, 
-                                email: email, 
-                                rol: 'admin' 
-                            });
-                        
-                        if (perfilError) throw perfilError;
-                        
-                        alert('✅ Usuario Valentin ya existía. Se ha actualizado su rol a administrador.\n\nEmail: valentin@raptorcarwash.com\nContraseña: kirita2025');
-                    } else {
-                        throw error;
-                    }
-                } else {
-                    // Usuario nuevo, crear perfil
-                    const { error: perfilError } = await supabase
-                        .from('perfiles')
-                        .insert({ 
-                            id: data.user.id, 
-                            nombre: nombre, 
-                            email: email, 
-                            rol: 'admin' 
-                        });
-                    
-                    if (perfilError) throw perfilError;
-                    
-                    alert('✅ Usuario Valentin creado exitosamente como ADMINISTRADOR\n\n📧 Email: valentin@raptorcarwash.com\n🔑 Contraseña: kirita2025\n\nYa puedes iniciar sesión con estas credenciales.');
-                }
-                
-                console.log('Usuario Valentin listo para usar');
-                
-            } catch (error) {
-                console.error('Error detallado:', error);
-                alert('❌ Error al crear usuario: ' + error.message + '\n\nSi el error persiste, verifica que:\n1. Supabase esté configurado correctamente\n2. La tabla "perfiles" exista\n3. Las políticas RLS estén configuradas');
-            } finally {
-                btn.innerHTML = textoOriginal;
-                btn.style.opacity = '1';
-            }
-        }
-
-        // ============================================
-        // FUNCIONES DE AUTENTICACIÓN
-        // ============================================
-        async function checkSession() {
-            const { data: { user } } = await supabase.auth.getUser();
-            return user;
-        }
-
-        async function login(email, password) {
-            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-            if (error) throw error;
-            return data;
-        }
-
-        async function logout() {
-            await supabase.auth.signOut();
-            location.reload();
-        }
-
-        async function isAdmin(userId) {
-            const { data } = await supabase.from('perfiles').select('rol').eq('id', userId).single();
-            return data?.rol === 'admin';
-        }
-
-        // ============================================
-        // FUNCIONES DEL DASHBOARD
-        // ============================================
-        async function loadEstadisticasGenerales() {
-            const { data: lavados } = await supabase.from('lavados').select('precio_final, comision_ganada');
-            const { data: gastos } = await supabase.from('gastos').select('monto');
-            
-            const ingresos = lavados?.reduce((s, l) => s + l.precio_final, 0) || 0;
-            const comisiones = lavados?.reduce((s, l) => s + l.comision_ganada, 0) || 0;
-            const gastosTotal = gastos?.reduce((s, g) => s + g.monto, 0) || 0;
-            const ganancia = ingresos - comisiones - gastosTotal;
-            const totalLavados = lavados?.length || 0;
-            
-            const ingresosEl = document.getElementById('totalIngresos');
-            const gastosEl = document.getElementById('totalGastos');
-            const gananciaEl = document.getElementById('gananciaNeta');
-            const lavadosEl = document.getElementById('totalLavados');
-            
-            if (ingresosEl) ingresosEl.innerText = `$${ingresos.toFixed(2)}`;
-            if (gastosEl) gastosEl.innerText = `$${gastosTotal.toFixed(2)}`;
-            if (lavadosEl) lavadosEl.innerText = totalLavados;
-            if (gananciaEl) {
-                gananciaEl.innerText = `$${ganancia.toFixed(2)}`;
-                gananciaEl.className = `stat-value ${ganancia >= 0 ? 'positive' : 'negative'}`;
-            }
-        }
-
-        async function loadGraficoGanancias() {
-            const { data: empleados } = await supabase.from('perfiles').select('id, nombre').eq('rol', 'empleado');
-            const labels = [];
-            const dataGanancias = [];
-            
-            for (let emp of empleados) {
-                const { data: lavados } = await supabase.from('lavados')
-                    .select('precio_final')
-                    .eq('empleado_id', emp.id);
-                const total = lavados?.reduce((s, l) => s + l.precio_final, 0) || 0;
-                labels.push(emp.nombre.split(' ')[0]);
-                dataGanancias.push(total);
-            }
-            
-            const ctx = document.getElementById('gananciasChart')?.getContext('2d');
-            if (!ctx) return;
-            
-            if (gananciasChart) gananciasChart.destroy();
-            
-            gananciasChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Ganancias por empleado ($)',
-                        data: dataGanancias,
-                        backgroundColor: '#dc2626',
-                        borderRadius: 8
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    plugins: {
-                        legend: { labels: { color: '#e0e0e0' } }
-                    },
-                    scales: {
-                        y: { ticks: { color: '#e0e0e0' }, grid: { color: '#3f3f3f' } },
-                        x: { ticks: { color: '#e0e0e0' }, grid: { color: '#3f3f3f' } }
-                    }
-                }
-            });
-        }
-
-        async function loadRecentActivity() {
-            const { data } = await supabase
-                .from('lavados')
-                .select('*, perfiles(nombre), tipos_lavado(nombre)')
-                .order('created_at', { ascending: false })
-                .limit(5);
-            
-            const container = document.getElementById('recentActivity');
-            if (!container) return;
-            
-            container.innerHTML = '';
-            if (!data || data.length === 0) {
-                container.innerHTML = '<div style="text-align: center; color: #6b7280; padding: 20px;">No hay actividad reciente</div>';
-                return;
-            }
-            
-            data.forEach(l => {
-                container.innerHTML += `
-                    <div class="recent-item">
-                        <div class="recent-info">
-                            <div class="recent-icon">🚗</div>
-                            <div>
-                                <div><strong>${l.perfiles?.nombre || 'Empleado'}</strong> - ${l.tipos_lavado?.nombre || 'Lavado'}</div>
-                                <div style="font-size: 0.7rem; color: #6b7280;">${l.matricula} • ${new Date(l.created_at).toLocaleString()}</div>
-                            </div>
-                        </div>
-                        <div style="font-weight: bold; color: #4ade80;">$${l.precio_final}</div>
-                    </div>
-                `;
-            });
-        }
-
-        // ============================================
-        // FUNCIONES DE EMPLEADOS
-        // ============================================
-        async function loadEmpleados() {
-            const { data } = await supabase.from('perfiles').select('*').eq('rol', 'empleado');
-            const container = document.getElementById('empleadosList');
-            if (!container) return;
-            
-            container.innerHTML = '';
-            if (!data || data.length === 0) {
-                container.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px;">No hay empleados registrados</td></tr>';
-                return;
-            }
-            
-            for (let emp of data) {
-                const { count } = await supabase
-                    .from('lavados')
-                    .select('*', { count: 'exact', head: true })
-                    .eq('empleado_id', emp.id);
-                
-                const { data: lavados } = await supabase
-                    .from('lavados')
-                    .select('comision_ganada')
-                    .eq('empleado_id', emp.id);
-                const totalComision = lavados?.reduce((s, l) => s + l.comision_ganada, 0) || 0;
-                
-                container.innerHTML += `
-                    <tr>
-                        <td><strong>${emp.nombre}</strong></td>
-                        <td style="font-size: 0.75rem;">${emp.email}</td>
-                        <td>${count || 0}</td>
-                        <td>$${totalComision.toFixed(2)}</td>
-                        <td><button class="icon-btn" onclick="eliminarEmpleado('${emp.id}')">Eliminar</button></td>
-                    </tr>
-                `;
-            }
-        }
-
-        window.eliminarEmpleado = async (id) => {
-            if (confirm('¿Eliminar este empleado? Se eliminarán todos sus lavados.')) {
-                await supabase.from('perfiles').delete().eq('id', id);
-                await loadEmpleados();
-                await loadReporteEmpleados();
-                await loadEstadisticasGenerales();
-                await loadGraficoGanancias();
-            }
-        };
-
-        async function crearEmpleado(nombre, email, password) {
-            const { data: { user }, error } = await supabase.auth.signUp({ email, password });
-            if (error) throw error;
-            await supabase.from('perfiles').insert([{ id: user.id, nombre, email, rol: 'empleado' }]);
-        }
-
-        // ============================================
-        // FUNCIONES DE SERVICIOS
-        // ============================================
-        async function loadTipos() {
-            const { data } = await supabase.from('tipos_lavado').select('*').order('id');
-            tiposLavadoCache = data || [];
-            const container = document.getElementById('tiposList');
-            if (!container) return;
-            
-            container.innerHTML = '';
-            if (!data || data.length === 0) {
-                container.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px;">No hay servicios registrados</td></tr>';
-                return;
-            }
-            
-            data.forEach(t => {
-                container.innerHTML += `
-                    <tr>
-                        <td><strong>${t.nombre}</strong></td>
-                        <td>${t.tipo_vehiculo === 'Auto' ? 'Auto' : 'Moto'}</td>
-                        <td>$${t.precio_total}</td>
-                        <td>$${t.comision_empleado}</td>
-                        <td><button class="icon-btn" onclick="eliminarTipo(${t.id})">Eliminar</button></td>
-                    </tr>
-                `;
-            });
-        }
-
-        window.eliminarTipo = async (id) => {
-            if (confirm('¿Eliminar este tipo de lavado?')) {
-                await supabase.from('tipos_lavado').delete().eq('id', id);
-                await loadTipos();
-            }
-        };
-
-        async function crearTipoLavado(nombre, tipo_vehiculo, precio_total, comision_empleado) {
-            await supabase.from('tipos_lavado').insert([{ nombre, tipo_vehiculo, precio_total, comision_empleado }]);
-        }
-
-        // ============================================
-        // FUNCIONES DE GASTOS
-        // ============================================
-        async function loadGastos(filtros = {}) {
-            let query = supabase.from('gastos').select('*').order('fecha', { ascending: false });
-            if (filtros.fechaInicio) query = query.gte('fecha', filtros.fechaInicio);
-            if (filtros.fechaFin) query = query.lte('fecha', filtros.fechaFin);
-            if (filtros.categoria && filtros.categoria !== '') query = query.eq('categoria', filtros.categoria);
-            
-            const { data } = await query;
-            const container = document.getElementById('gastosList');
-            if (!container) return;
-            
-            container.innerHTML = '';
-            let total = 0;
-            
-            if (!data || data.length === 0) {
-                container.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px;">No hay gastos registrados</td></tr>';
-            } else {
-                data.forEach(g => {
-                    total += g.monto;
-                    container.innerHTML += `
-                        <tr>
-                            <td><strong>${g.concepto}</strong></td>
-                            <td><span class="badge">${g.categoria}</span></td>
-                            <td style="color: #ef4444;">-$${g.monto.toFixed(2)}</td>
-                            <td>${new Date(g.fecha).toLocaleDateString()}</td>
-                            <td><button class="icon-btn" onclick="eliminarGasto(${g.id})">Eliminar</button></td>
-                        </tr>
-                    `;
-                });
-            }
-            
-            const totalContainer = document.getElementById('totalGastosFiltrados');
-            if (totalContainer) totalContainer.innerHTML = `Total Gastos: $${total.toFixed(2)}`;
-        }
-
-        window.eliminarGasto = async (id) => {
-            if (confirm('¿Eliminar este gasto?')) {
-                await supabase.from('gastos').delete().eq('id', id);
-                await aplicarFiltrosGastos();
-                await loadEstadisticasGenerales();
-            }
-        };
-
-        async function crearGasto(concepto, categoria, monto, fecha) {
-            await supabase.from('gastos').insert([{ concepto, categoria, monto, fecha }]);
-        }
-
-        async function aplicarFiltrosGastos() {
-            const filtros = {
-                fechaInicio: document.getElementById('filtroFechaInicio')?.value,
-                fechaFin: document.getElementById('filtroFechaFin')?.value,
-                categoria: document.getElementById('filtroCategoria')?.value
-            };
-            await loadGastos(filtros);
-        }
-
-        // ============================================
-        // FUNCIONES DE REPORTES
-        // ============================================
-        async function loadReporteEmpleados() {
-            const { data: empleados } = await supabase.from('perfiles').select('id, nombre').eq('rol', 'empleado');
-            const container = document.getElementById('reporteEmpleados');
-            if (!container) return;
-            
-            container.innerHTML = '';
-            if (!empleados || empleados.length === 0) {
-                container.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px;">No hay empleados registrados</td></tr>';
-                return;
-            }
-            
-            for (let emp of empleados) {
-                const { data: lavados } = await supabase.from('lavados')
-                    .select('precio_final, comision_ganada')
-                    .eq('empleado_id', emp.id);
-                const totalRecaudado = lavados?.reduce((s, l) => s + l.precio_final, 0) || 0;
-                const totalComisiones = lavados?.reduce((s, l) => s + l.comision_ganada, 0) || 0;
-                const ganancia = totalRecaudado - totalComisiones;
-                
-                container.innerHTML += `
-                    <tr>
-                        <td><strong>${emp.nombre}</strong></td>
-                        <td>$${totalRecaudado.toFixed(2)}</td>
-                        <td>$${totalComisiones.toFixed(2)}</td>
-                        <td style="color: #4ade80;">+$${ganancia.toFixed(2)}</td>
-                    </tr>
-                `;
-            }
-        }
-
-        async function loadEstadisticasMensuales() {
-            const { data } = await supabase.from('estadisticas_mensuales').select('*').limit(6);
-            const container = document.getElementById('estadisticasMensuales');
-            if (!container) return;
-            
-            container.innerHTML = '';
-            if (!data || data.length === 0) {
-                container.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px;">No hay datos disponibles</td></tr>';
-                return;
-            }
-            
-            data.forEach(est => {
-                const mes = new Date(est.mes).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
-                container.innerHTML += `
-                    <tr>
-                        <td>${mes}</td>
-                        <td>${est.total_lavados || 0}</td>
-                        <td>$${(est.ingresos_brutos || 0).toFixed(2)}</td>
-                        <td>$${(est.total_gastos || 0).toFixed(2)}</td>
-                        <td style="color: ${(est.ganancia_neta || 0) >= 0 ? '#4ade80' : '#ef4444'}">$${(est.ganancia_neta || 0).toFixed(2)}</td>
-                    </tr>
-                `;
-            });
-        }
-
-        // ============================================
-        // NAVEGACIÓN
-        // ============================================
-        function switchPanel(panelId) {
-            document.querySelectorAll('.panel').forEach(panel => {
-                panel.classList.remove('active');
-            });
-            document.getElementById(`${panelId}Panel`).classList.add('active');
-            
-            document.querySelectorAll('.nav-item').forEach(item => {
-                item.classList.remove('active');
-            });
-            document.querySelectorAll(`.nav-item[data-nav="${panelId}"]`).forEach(item => {
-                item.classList.add('active');
-            });
-            
-            const titles = {
-                dashboard: 'Dashboard',
-                employees: 'Gestión de Empleados',
-                services: 'Gestión de Servicios',
-                expenses: 'Gestión de Gastos',
-                reports: 'Reportes y Estadísticas'
-            };
-            
-            const titleEl = document.getElementById('pageTitle');
-            if (titleEl) titleEl.innerText = titles[panelId] || 'Dashboard';
-            
-            if (panelId === 'dashboard') {
-                loadEstadisticasGenerales();
-                loadGraficoGanancias();
-                loadRecentActivity();
-            } else if (panelId === 'employees') {
-                loadEmpleados();
-            } else if (panelId === 'services') {
-                loadTipos();
-            } else if (panelId === 'expenses') {
-                aplicarFiltrosGastos();
-            } else if (panelId === 'reports') {
-                loadReporteEmpleados();
-                loadEstadisticasMensuales();
-            }
-        }
-
-        // ============================================
-        // INICIALIZACIÓN
-        // ============================================
-        async function initApp() {
-            const user = await checkSession();
-            if (!user) return;
-            
-            const admin = await isAdmin(user.id);
-            if (!admin) {
-                await logout();
-                alert('Acceso denegado. Se requieren permisos de administrador.');
-                return;
-            }
-            
-            currentUser = user;
-            document.getElementById('loginContainer').style.display = 'none';
-            document.getElementById('appContainer').style.display = 'flex';
-            
-            document.querySelectorAll('.nav-item[data-nav]').forEach(item => {
-                item.addEventListener('click', () => {
-                    switchPanel(item.dataset.nav);
-                });
-            });
-            
-            document.getElementById('logoutMobileBtn')?.addEventListener('click', logout);
-            
-            await loadEstadisticasGenerales();
-            await loadGraficoGanancias();
-            await loadRecentActivity();
-        }
-
-        // ============================================
-        // EVENTOS
-        // ============================================
-        document.getElementById('loginBtn').onclick = async () => {
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
-            
-            try {
-                const data = await login(email, password);
-                const admin = await isAdmin(data.user.id);
-                if (!admin) {
-                    await logout();
-                    alert('Acceso denegado. No tienes permisos de administrador.');
-                    return;
-                }
-                await initApp();
-            } catch (error) {
-                alert('Error de inicio de sesión: ' + error.message);
-            }
-        };
-
-        document.getElementById('crearEmpleadoBtn')?.addEventListener('click', async () => {
-            const nombre = document.getElementById('empNombre').value;
-            const email = document.getElementById('empEmail').value;
-            const password = document.getElementById('empPassword').value;
-            if (!nombre || !email || !password) {
-                alert('Completa todos los campos');
-                return;
-            }
-            
-            try {
-                await crearEmpleado(nombre, email, password);
-                alert('Empleado creado exitosamente');
-                document.getElementById('empNombre').value = '';
-                document.getElementById('empEmail').value = '';
-                document.getElementById('empPassword').value = '';
-                await loadEmpleados();
-            } catch (error) {
-                alert('Error: ' + error.message);
-            }
-        });
-        
-        document.getElementById('crearTipoBtn')?.addEventListener('click', async () => {
-            const nombre = document.getElementById('tipoNombre').value;
-            const tipo_vehiculo = document.getElementById('tipoVehiculo').value;
-            const precio_total = parseFloat(document.getElementById('tipoPrecio').value);
-            const comision_empleado = parseFloat(document.getElementById('tipoComision').value);
-            if (!nombre || !precio_total || !comision_empleado) {
-                alert('Completa todos los campos');
-                return;
-            }
-            
-            await crearTipoLavado(nombre, tipo_vehiculo, precio_total, comision_empleado);
-            alert('Servicio agregado');
-            document.getElementById('tipoNombre').value = '';
-            document.getElementById('tipoPrecio').value = '';
-            document.getElementById('tipoComision').value = '';
-            await loadTipos();
-        });
-        
-        document.getElementById('registrarGastoBtn')?.addEventListener('click', async () => {
-            const concepto = document.getElementById('gastoConcepto').value;
-            const categoria = document.getElementById('gastoCategoria').value;
-            const monto = parseFloat(document.getElementById('gastoMonto').value);
-            const fecha = document.getElementById('gastoFecha').value || new Date().toISOString().split('T')[0];
-            
-            if (!concepto || !monto) {
-                alert('Completa concepto y monto');
-                return;
-            }
-            
-            await crearGasto(concepto, categoria, monto, fecha);
-            alert('Gasto registrado');
-            document.getElementById('gastoConcepto').value = '';
-            document.getElementById('gastoMonto').value = '';
-            await aplicarFiltrosGastos();
-            await loadEstadisticasGenerales();
-        });
-        
-        document.getElementById('filtrarGastosBtn')?.addEventListener('click', aplicarFiltrosGastos);
-        
-        // Botón flotante para crear usuario Valentin
-        document.getElementById('crearAdminFloatBtn')?.addEventListener('click', crearUsuarioValentin);
-        
-        // Verificar sesión al cargar
-        checkSession().then(user => {
-            if (user) {
-                initApp();
-            }
-        });
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>

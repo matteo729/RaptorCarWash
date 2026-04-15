@@ -1,7 +1,6 @@
 // Configuración de Supabase - ¡REEMPLAZA CON TUS DATOS!
 const SUPABASE_URL = 'https://ldalildhdukyjnvmjlsg.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkYWxpbGRoZHVreWpudm1qbHNnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNzcxMTYsImV4cCI6MjA5MTg1MzExNn0.f-sLoQgbtBfqmoPweJ0am7pnCIGiaZhkGaAjc_s8Y8A';
-
 // Inicializar Supabase
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -412,4 +411,251 @@ async function loadEmpleadosFiltro() {
         }
         
     } catch (error) {
-       
+        console.error('Error cargando empleados:', error);
+    }
+}
+
+// Registrar gasto
+async function addGasto(event) {
+    event.preventDefault();
+    
+    const concepto = document.getElementById('concepto').value;
+    const monto = parseFloat(document.getElementById('monto').value);
+    
+    try {
+        const { error } = await supabase
+            .from('gastos')
+            .insert([{
+                concepto: concepto,
+                monto: monto,
+                registrado_por: currentUser.id
+            }]);
+        
+        if (error) throw error;
+        
+        document.getElementById('gastoForm').reset();
+        loadDashboard();
+        showError('Gasto registrado correctamente');
+        
+    } catch (error) {
+        console.error('Error registrando gasto:', error);
+        showError('Error al registrar gasto');
+    }
+}
+
+// ==================== EMPLEADOS ====================
+
+// Cargar servicios para empleados
+async function loadServiciosEmpleado() {
+    try {
+        const { data: servicios, error } = await supabase
+            .from('servicios')
+            .select('*')
+            .eq('activo', true)
+            .order('tipo', { ascending: true });
+        
+        if (error) throw error;
+        
+        const select = document.getElementById('servicioId');
+        if (!select) return;
+        
+        select.innerHTML = '<option value="">Seleccionar servicio</option>' +
+            servicios.map(s => `<option value="${s.id}" data-precio="${s.precio_venta}" data-comision="${s.comision_empleado}">
+                ${s.tipo === 'auto' ? '🚗' : '🏍️'} ${s.nombre} - $${s.precio_venta}
+            </option>`).join('');
+        
+        // Agregar evento para calcular precio automáticamente
+        select.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            const precio = selectedOption.getAttribute('data-precio');
+            if (precio) {
+                document.getElementById('precioFinal').value = precio;
+            }
+        });
+        
+    } catch (error) {
+        console.error('Error cargando servicios:', error);
+    }
+}
+
+// Registrar lavado (empleado)
+async function registerLavado(event) {
+    event.preventDefault();
+    
+    if (!currentEmpleado) {
+        showError('No se ha identificado al empleado');
+        return;
+    }
+    
+    const nuevoLavado = {
+        empleado_id: currentEmpleado.id,
+        servicio_id: parseInt(document.getElementById('servicioId').value),
+        modelo_auto: document.getElementById('modeloAuto').value,
+        matricula: document.getElementById('matricula').value,
+        observaciones: document.getElementById('observaciones').value,
+        precio_final: parseFloat(document.getElementById('precioFinal').value)
+    };
+    
+    // Obtener comisión del servicio seleccionado
+    const servicioSelect = document.getElementById('servicioId');
+    const selectedOption = servicioSelect.options[servicioSelect.selectedIndex];
+    const comision = parseFloat(selectedOption.getAttribute('data-comision'));
+    nuevoLavado.comision_ganada = comision;
+    
+    try {
+        const { error } = await supabase
+            .from('lavados')
+            .insert([nuevoLavado]);
+        
+        if (error) throw error;
+        
+        document.getElementById('lavadoForm').reset();
+        document.getElementById('precioFinal').value = '';
+        showError('Lavado registrado correctamente');
+        
+        // Cambiar a pestaña de historial
+        document.querySelector('[data-tab="historial"]').click();
+        
+    } catch (error) {
+        console.error('Error registrando lavado:', error);
+        showError('Error al registrar lavado');
+    }
+}
+
+// Cargar historial personal del empleado
+async function loadHistorialPersonal() {
+    try {
+        let query = supabase
+            .from('lavados')
+            .select(`
+                *,
+                servicios (nombre)
+            `)
+            .eq('empleado_id', currentEmpleado.id)
+            .order('fecha', { ascending: false });
+        
+        const fechaFiltro = document.getElementById('filtroFechaPersonal')?.value;
+        if (fechaFiltro) {
+            const startDate = new Date(fechaFiltro);
+            startDate.setHours(0, 0, 0, 0);
+            const endDate = new Date(fechaFiltro);
+            endDate.setHours(23, 59, 59, 999);
+            query = query.gte('fecha', startDate.toISOString())
+                         .lte('fecha', endDate.toISOString());
+        }
+        
+        const { data: lavados, error } = await query;
+        
+        if (error) throw error;
+        
+        const tbody = document.getElementById('historialPersonalList');
+        if (!tbody) return;
+        
+        const totalComisiones = lavados.reduce((sum, l) => sum + l.comision_ganada, 0);
+        const totalLavados = lavados.length;
+        
+        document.getElementById('totalComisiones').textContent = `$${totalComisiones.toFixed(2)}`;
+        document.getElementById('totalLavadosPersonal').textContent = totalLavados;
+        
+        tbody.innerHTML = lavados.map(l => `
+            <tr>
+                <td>${formatDate(l.fecha)}</td>
+                <td>${l.modelo_auto}</td>
+                <td>${l.matricula}</td>
+                <td>${l.servicios?.nombre || 'N/A'}</td>
+                <td>$${l.precio_final.toFixed(2)}</td>
+                <td>$${l.comision_ganada.toFixed(2)}</td>
+                <td>${l.observaciones || '-'}</td>
+            </tr>
+        `).join('');
+        
+    } catch (error) {
+        console.error('Error cargando historial personal:', error);
+    }
+}
+
+// ==================== INICIALIZACIÓN ====================
+
+// Navegación entre tabs
+function initNavigation() {
+    const navItems = document.querySelectorAll('.nav-item');
+    const tabs = document.querySelectorAll('.tab-content');
+    
+    navItems.forEach(item => {
+        item.addEventListener('click', () => {
+            const tabId = item.getAttribute('data-tab');
+            
+            navItems.forEach(nav => nav.classList.remove('active'));
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            item.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+            
+            // Cargar datos específicos al cambiar de tab
+            if (tabId === 'historial' && window.location.pathname.includes('admin.html')) {
+                loadHistorial();
+            } else if (tabId === 'historial' && window.location.pathname.includes('empleados.html')) {
+                loadHistorialPersonal();
+            }
+        });
+    });
+}
+
+// Inicializar según la página
+async function init() {
+    // Verificar autenticación
+    const isAuthenticated = await checkAuth();
+    if (!isAuthenticated) return;
+    
+    // Configurar logout
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', logout);
+    }
+    
+    // Inicializar navegación
+    initNavigation();
+    
+    // Inicializar según la página
+    const isAdminPage = window.location.pathname.includes('admin.html');
+    
+    if (isAdminPage) {
+        // Admin: cargar todos los módulos
+        await loadDashboard();
+        await loadServicios();
+        await loadEmpleados();
+        await loadHistorial();
+        await loadEmpleadosFiltro();
+        
+        // Configurar eventos de admin
+        const servicioForm = document.getElementById('servicioForm');
+        if (servicioForm) servicioForm.addEventListener('submit', addServicio);
+        
+        const empleadoForm = document.getElementById('empleadoForm');
+        if (empleadoForm) empleadoForm.addEventListener('submit', createEmpleado);
+        
+        const gastoForm = document.getElementById('gastoForm');
+        if (gastoForm) gastoForm.addEventListener('submit', addGasto);
+        
+        const filtroFecha = document.getElementById('filtroFecha');
+        if (filtroFecha) filtroFecha.addEventListener('change', loadHistorial);
+        
+        const filtroEmpleado = document.getElementById('filtroEmpleado');
+        if (filtroEmpleado) filtroEmpleado.addEventListener('change', loadHistorial);
+        
+    } else {
+        // Empleado: cargar módulos de empleado
+        await loadServiciosEmpleado();
+        await loadHistorialPersonal();
+        
+        // Configurar eventos de empleado
+        const lavadoForm = document.getElementById('lavadoForm');
+        if (lavadoForm) lavadoForm.addEventListener('submit', registerLavado);
+        
+        const filtroFechaPersonal = document.getElementById('filtroFechaPersonal');
+        if (filtroFechaPersonal) filtroFechaPersonal.addEventListener('change', loadHistorialPersonal);
+    }
+}
+
+// Iniciar aplicación cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', init);

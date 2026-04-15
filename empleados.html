@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RAPTOR CARWASH - Panel de Empleados</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
     <div class="app-container">
@@ -14,18 +15,13 @@
                 <p>Panel de Empleado</p>
             </div>
             <nav class="nav-menu">
-                <button class="nav-item active" data-tab="registro">
-                    📝 Registrar Lavado
-                </button>
-                <button class="nav-item" data-tab="historial">
-                    📜 Mi Historial
-                </button>
+                <button class="nav-item active" data-tab="registro">Registrar Lavado</button>
+                <button class="nav-item" data-tab="historial">Mi Historial</button>
             </nav>
-            <button id="logoutBtn" class="logout-btn">Cerrar Sesión</button>
+            <button id="logoutBtn" class="logout-btn">Cerrar Sesion</button>
         </aside>
 
         <main class="main-content">
-            <!-- Registro de Lavado -->
             <div id="registro" class="tab-content active">
                 <h1>Registrar Nuevo Lavado</h1>
                 <form id="lavadoForm" class="lavado-form">
@@ -34,7 +30,7 @@
                         <input type="text" id="modeloAuto" placeholder="Ej: Toyota Corolla" required>
                     </div>
                     <div class="form-group">
-                        <label>Matrícula:</label>
+                        <label>Matricula:</label>
                         <input type="text" id="matricula" placeholder="ABC-123" required>
                     </div>
                     <div class="form-group">
@@ -55,7 +51,6 @@
                 </form>
             </div>
 
-            <!-- Mi Historial -->
             <div id="historial" class="tab-content">
                 <h1>Mi Historial de Lavados</h1>
                 <div class="filters">
@@ -63,7 +58,7 @@
                 </div>
                 <div class="table-container">
                     <table id="historialPersonalTable">
-                        <thead><tr><th>Fecha</th><th>Modelo</th><th>Matrícula</th><th>Servicio</th><th>Precio</th><th>Comisión</th><th>Observaciones</th></tr></thead>
+                        <thead><tr><th>Fecha</th><th>Modelo</th><th>Matricula</th><th>Servicio</th><th>Precio</th><th>Comision</th><th>Observaciones</th></tr></thead>
                         <tbody id="historialPersonalList"></tbody>
                     </table>
                 </div>
@@ -80,6 +75,7 @@
             </div>
         </main>
     </div>
+    <script src="config.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

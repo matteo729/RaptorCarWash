@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Raptor Car Wash - Admin</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="script.js"></script>
+</head>
+<body>
+<div class="container">
+    <h1>🦖 Raptor Car Wash</h1>
+    <p class="subtitle">Panel de Administración</p>
+
+    <div class="header-bar">
+        <button id="logoutBtn" class="btn-logout">Cerrar sesión</button>
+    </div>
+
+    <!-- Estadísticas rápidas -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-label">💰 Ingresos Totales</div>
+            <div class="stat-value positive" id="totalIngresos">$0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">💸 Gastos Totales</div>
+            <div class="stat-value negative" id="totalGastos">$0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">📈 Ganancia Neta</div>
+            <div class="stat-value" id="gananciaNeta">$0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">🧾 Comisiones Pagadas</div>
+            <div class="stat-value" id="totalComisiones">$0</div>
+        </div>
+    </div>
+
+    <!-- Gráfico -->
+    <div class="card">
+        <canvas id="gananciasChart"></canvas>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+        <button class="tab active" data-tab="empleados">👥 Empleados</button>
+        <button class="tab" data-tab="tipos">🧼 Tipos de Lavado</button>
+        <button class="tab" data-tab="gastos">💸 Gastos</button>
+        <button class="tab" data-tab="reporte">📊 Reporte</button>
+    </div>
+
+    <!-- Tab: Empleados -->
+    <div id="tab-empleados" class="tab-content active">
+        <div class="card">
+            <h2>➕ Agregar Empleado</h2>
+            <input type="text" id="empNombre" placeholder="Nombre completo">
+            <input type="email" id="empEmail" placeholder="Email">
+            <input type="password" id="empPassword" placeholder="Contraseña temporal">
+            <button id="crearEmpleadoBtn" class="btn-success">Agregar empleado</button>
+        </div>
+        <div class="card">
+            <h2>👥 Lista de Empleados</h2>
+            <div id="empleadosList" class="grid"></div>
+        </div>
+    </div>
+
+    <!-- Tab: Tipos de Lavado -->
+    <div id="tab-tipos" class="tab-content">
+        <div class="card">
+            <h2>➕ Agregar Tipo de Lavado</h2>
+            <input type="text" id="tipoNombre" placeholder="Nombre">
+            <select id="tipoVehiculo">
+                <option value="Auto">Auto</option>
+                <option value="Moto">Moto</option>
+            </select>
+            <input type="number" id="tipoPrecio" placeholder="Precio total" step="0.01">
+            <input type="number" id="tipoComision" placeholder="Comisión empleado" step="0.01">
+            <button id="crearTipoBtn" class="btn-primary">Agregar tipo</button>
+        </div>
+        <div class="card">
+            <h2>🧼 Tipos de Lavado</h2>
+            <div id="tiposList" class="grid"></div>
+        </div>
+    </div>
+
+    <!-- Tab: Gastos -->
+    <div id="tab-gastos" class="tab-content">
+        <div class="card">
+            <h2>➕ Registrar Gasto</h2>
+            <input type="text" id="gastoConcepto" placeholder="Concepto">
+            <select id="gastoCategoria">
+                <option value="Agua">💧 Agua</option>
+                <option value="Electricidad">⚡ Electricidad</option>
+                <option value="Productos">🧴 Productos</option>
+                <option value="Mantenimiento">🔧 Mantenimiento</option>
+                <option value="Sueldos">👔 Sueldos</option>
+                <option value="Otros">📦 Otros</option>
+            </select>
+            <input type="number" id="gastoMonto" placeholder="Monto" step="0.01">
+            <input type="date" id="gastoFecha">
+            <button id="registrarGastoBtn" class="btn-warning">Registrar gasto</button>
+        </div>
+        <div class="card">
+            <div class="filtros">
+                <input type="date" id="filtroFechaInicio" placeholder="Fecha inicio">
+                <input type="date" id="filtroFechaFin" placeholder="Fecha fin">
+                <select id="filtroCategoria">
+                    <option value="">Todas las categorías</option>
+                    <option value="Agua">Agua</option>
+                    <option value="Electricidad">Electricidad</option>
+                    <option value="Productos">Productos</option>
+                    <option value="Mantenimiento">Mantenimiento</option>
+                    <option value="Sueldos">Sueldos</option>
+                    <option value="Otros">Otros</option>
+                </select>
+                <button id="filtrarGastosBtn" class="btn-small">Filtrar</button>
+            </div>
+            <h2>📋 Historial de Gastos</h2>
+            <div id="gastosList" class="grid"></div>
+            <div id="totalGastosFiltrados" class="stat-card" style="margin-top: 15px;"></div>
+        </div>
+    </div>
+
+    <!-- Tab: Reporte Detallado -->
+    <div id="tab-reporte" class="tab-content">
+        <div class="card">
+            <h2>📊 Ganancias por Empleado</h2>
+            <div id="reporteEmpleados" class="grid"></div>
+        </div>
+        <div class="card">
+            <h2>📅 Estadísticas Mensuales</h2>
+            <div id="estadisticasMensuales" class="grid"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Inicialización específica para admin
+    (async function initAdmin() {
+        // Verificar si es admin
+        const admin = await window.isAdmin();
+        if (!admin) {
+            alert('No tenés permisos de administrador');
+            window.location.href = 'empleado.html';
+            return;
+        }
+        
+        // Cargar datos iniciales
+        await window.loadEstadisticasGenerales();
+        await window.loadGraficoGanancias();
+        await window.loadEmpleados();
+        await window.loadTipos();
+        window.aplicarFiltrosGastos();
+        
+        // Eventos
+        document.getElementById('logoutBtn').onclick = () => window.logout();
+        
+        document.getElementById('crearEmpleadoBtn').onclick = async () => {
+            const nombre = document.getElementById('empNombre').value;
+            const email = document.getElementById('empEmail').value;
+            const password = document.getElementById('empPassword').value;
+            if (!nombre || !email || !password) return alert('Completá todos los campos');
+            
+            try {
+                await window.crearEmpleado(nombre, email, password);
+                alert('Empleado creado');
+                document.getElementById('empNombre').value = '';
+                document.getElementById('empEmail').value = '';
+                document.getElementById('empPassword').value = '';
+                await window.loadEmpleados();
+                await window.loadReporteEmpleados();
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        };
+        
+        document.getElementById('crearTipoBtn').onclick = async () => {
+            const nombre = document.getElementById('tipoNombre').value;
+            const tipo_vehiculo = document.getElementById('tipoVehiculo').value;
+            const precio_total = parseFloat(document.getElementById('tipoPrecio').value);
+            const comision_empleado = parseFloat(document.getElementById('tipoComision').value);
+            if (!nombre || !precio_total || !comision_empleado) return alert('Completá todos los campos');
+            
+            await window.crearTipoLavado(nombre, tipo_vehiculo, precio_total, comision_empleado);
+            alert('Tipo de lavado agregado');
+            document.getElementById('tipoNombre').value = '';
+            document.getElementById('tipoPrecio').value = '';
+            document.getElementById('tipoComision').value = '';
+            await window.loadTipos();
+        };
+        
+        document.getElementById('registrarGastoBtn').onclick = async () => {
+            const concepto = document.getElementById('gastoConcepto').value;
+            const categoria = document.getElementById('gastoCategoria').value;
+            const monto = parseFloat(document.getElementById('gastoMonto').value);
+            const fecha = document.getElementById('gastoFecha').value || new Date().toISOString().split('T')[0];
+            
+            if (!concepto || !monto) return alert('Completá concepto y monto');
+            
+            await window.crearGasto(concepto, categoria, monto, fecha);
+            alert('Gasto registrado');
+            document.getElementById('gastoConcepto').value = '';
+            document.getElementById('gastoMonto').value = '';
+            window.aplicarFiltrosGastos();
+            await window.loadEstadisticasGenerales();
+        };
+        
+        document.getElementById('filtrarGastosBtn').onclick = () => window.aplicarFiltrosGastos();
+        
+        // Sistema de tabs
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', async () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById(`tab-${tab.dataset.tab}`).classList.add('active');
+                
+                if (tab.dataset.tab === 'reporte') {
+                    await window.loadReporteEmpleados();
+                    await window.loadEstadisticasMensuales();
+                }
+            });
+        });
+    })();
+</script>
+</body>
+</html>

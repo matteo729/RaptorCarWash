@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAPTOR CARWASH - Panel de Empleados</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="logo">
+                <h2>RAPTOR CARWASH</h2>
+                <p>Panel de Empleado</p>
+            </div>
+            <nav class="nav-menu">
+                <button class="nav-item active" data-tab="registro">
+                    📝 Registrar Lavado
+                </button>
+                <button class="nav-item" data-tab="historial">
+                    📜 Mi Historial
+                </button>
+            </nav>
+            <button id="logoutBtn" class="logout-btn">Cerrar Sesión</button>
+        </aside>
+
+        <main class="main-content">
+            <!-- Registro de Lavado -->
+            <div id="registro" class="tab-content active">
+                <h1>Registrar Nuevo Lavado</h1>
+                <form id="lavadoForm" class="lavado-form">
+                    <div class="form-group">
+                        <label>Modelo del Auto:</label>
+                        <input type="text" id="modeloAuto" placeholder="Ej: Toyota Corolla" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Matrícula:</label>
+                        <input type="text" id="matricula" placeholder="ABC-123" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Tipo de Servicio:</label>
+                        <select id="servicioId" required>
+                            <option value="">Seleccionar servicio</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Observaciones:</label>
+                        <textarea id="observaciones" rows="3" placeholder="Observaciones adicionales..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Precio Final:</label>
+                        <input type="number" id="precioFinal" step="0.01" readonly>
+                    </div>
+                    <button type="submit" class="submit-btn">Registrar Lavado</button>
+                </form>
+            </div>
+
+            <!-- Mi Historial -->
+            <div id="historial" class="tab-content">
+                <h1>Mi Historial de Lavados</h1>
+                <div class="filters">
+                    <input type="date" id="filtroFechaPersonal">
+                </div>
+                <div class="table-container">
+                    <table id="historialPersonalTable">
+                        <thead><tr><th>Fecha</th><th>Modelo</th><th>Matrícula</th><th>Servicio</th><th>Precio</th><th>Comisión</th><th>Observaciones</th></tr></thead>
+                        <tbody id="historialPersonalList"></tbody>
+                    </table>
+                </div>
+                <div class="stats-summary">
+                    <div class="stat-card">
+                        <h3>Total Comisiones</h3>
+                        <p id="totalComisiones" class="stat-value">$0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Lavados Realizados</h3>
+                        <p id="totalLavadosPersonal" class="stat-value">0</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

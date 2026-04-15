@@ -6,6 +6,7 @@
     <title>RAPTOR CARWASH - Administración</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
     <div class="app-container">
@@ -16,20 +17,12 @@
                 <p>Panel Administrativo</p>
             </div>
             <nav class="nav-menu">
-                <button class="nav-item active" data-tab="dashboard">
-                    📊 Dashboard
-                </button>
-                <button class="nav-item" data-tab="precios">
-                    💰 Gestión de Precios
-                </button>
-                <button class="nav-item" data-tab="empleados">
-                    👥 Gestión de Empleados
-                </button>
-                <button class="nav-item" data-tab="historial">
-                    📜 Historial de Lavados
-                </button>
+                <button class="nav-item active" data-tab="dashboard">Dashboard</button>
+                <button class="nav-item" data-tab="precios">Gestion de Precios</button>
+                <button class="nav-item" data-tab="empleados">Gestion de Empleados</button>
+                <button class="nav-item" data-tab="historial">Historial de Lavados</button>
             </nav>
-            <button id="logoutBtn" class="logout-btn">Cerrar Sesión</button>
+            <button id="logoutBtn" class="logout-btn">Cerrar Sesion</button>
         </aside>
 
         <!-- Main Content -->
@@ -68,9 +61,9 @@
                 </div>
             </div>
 
-            <!-- Gestión de Precios Tab -->
+            <!-- Gestion de Precios Tab -->
             <div id="precios" class="tab-content">
-                <h1>Gestión de Precios</h1>
+                <h1>Gestion de Precios</h1>
                 <form id="servicioForm">
                     <select id="tipoServicio" required>
                         <option value="auto">Auto</option>
@@ -78,23 +71,23 @@
                     </select>
                     <input type="text" id="nombreServicio" placeholder="Nombre del servicio" required>
                     <input type="number" id="precioVenta" placeholder="Precio de venta" step="0.01" required>
-                    <input type="number" id="comisionEmpleado" placeholder="Comisión para empleado" step="0.01" required>
+                    <input type="number" id="comisionEmpleado" placeholder="Comision para empleado" step="0.01" required>
                     <button type="submit">Agregar Servicio</button>
                 </form>
                 <div class="table-container">
                     <h3>Servicios Activos</h3>
                     <table id="serviciosTable">
                         <thead>
-                            <tr><th>Tipo</th><th>Nombre</th><th>Precio Venta</th><th>Comisión</th><th>Acciones</th></tr>
+                            <tr><th>Tipo</th><th>Nombre</th><th>Precio Venta</th><th>Comision</th><th>Acciones</th></tr>
                         </thead>
                         <tbody id="serviciosList"></tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- Gestión de Empleados Tab -->
+            <!-- Gestion de Empleados Tab -->
             <div id="empleados" class="tab-content">
-                <h1>Gestión de Empleados</h1>
+                <h1>Gestion de Empleados</h1>
                 <form id="empleadoForm">
                     <input type="text" id="nombreEmpleado" placeholder="Nombre completo" required>
                     <input type="email" id="emailEmpleado" placeholder="Email" required>
@@ -121,13 +114,14 @@
                 </div>
                 <div class="table-container">
                     <table id="historialTable">
-                        <thead><tr><th>Fecha</th><th>Empleado</th><th>Modelo</th><th>Matrícula</th><th>Servicio</th><th>Precio</th><th>Comisión</th></tr></thead>
+                        <thead><tr><th>Fecha</th><th>Empleado</th><th>Modelo</th><th>Matricula</th><th>Servicio</th><th>Precio</th><th>Comision</th></tr></thead>
                         <tbody id="historialList"></tbody>
                     </table>
                 </div>
             </div>
         </main>
     </div>
+    <script src="config.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

@@ -10,24 +10,22 @@
 </head>
 <body>
     <div class="app-container">
-        <!-- Sidebar -->
         <aside class="sidebar">
             <div class="logo">
                 <h2>RAPTOR CARWASH</h2>
                 <p>Panel Administrativo</p>
+                <p id="userInfo" style="font-size: 12px; margin-top: 10px;"></p>
             </div>
             <nav class="nav-menu">
                 <button class="nav-item active" data-tab="dashboard">Dashboard</button>
-                <button class="nav-item" data-tab="precios">Gestion de Precios</button>
-                <button class="nav-item" data-tab="empleados">Gestion de Empleados</button>
+                <button class="nav-item" data-tab="precios">Gestión de Precios</button>
+                <button class="nav-item" data-tab="empleados">Gestión de Empleados</button>
                 <button class="nav-item" data-tab="historial">Historial de Lavados</button>
             </nav>
-            <button id="logoutBtn" class="logout-btn">Cerrar Sesion</button>
+            <button id="logoutBtn" class="logout-btn">Cerrar Sesión</button>
         </aside>
 
-        <!-- Main Content -->
         <main class="main-content">
-            <!-- Dashboard Tab -->
             <div id="dashboard" class="tab-content active">
                 <h1>Dashboard</h1>
                 <div class="stats-grid">
@@ -61,9 +59,8 @@
                 </div>
             </div>
 
-            <!-- Gestion de Precios Tab -->
             <div id="precios" class="tab-content">
-                <h1>Gestion de Precios</h1>
+                <h1>Gestión de Precios</h1>
                 <form id="servicioForm">
                     <select id="tipoServicio" required>
                         <option value="auto">Auto</option>
@@ -71,57 +68,318 @@
                     </select>
                     <input type="text" id="nombreServicio" placeholder="Nombre del servicio" required>
                     <input type="number" id="precioVenta" placeholder="Precio de venta" step="0.01" required>
-                    <input type="number" id="comisionEmpleado" placeholder="Comision para empleado" step="0.01" required>
+                    <input type="number" id="comisionEmpleado" placeholder="Comisión para empleado" step="0.01" required>
                     <button type="submit">Agregar Servicio</button>
                 </form>
                 <div class="table-container">
                     <h3>Servicios Activos</h3>
                     <table id="serviciosTable">
-                        <thead>
-                            <tr><th>Tipo</th><th>Nombre</th><th>Precio Venta</th><th>Comision</th><th>Acciones</th></tr>
-                        </thead>
+                        <thead><tr><th>Tipo</th><th>Nombre</th><th>Precio Venta</th><th>Comisión</th><th>Acciones</th></tr></thead>
                         <tbody id="serviciosList"></tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- Gestion de Empleados Tab -->
             <div id="empleados" class="tab-content">
-                <h1>Gestion de Empleados</h1>
-                <form id="empleadoForm">
-                    <input type="text" id="nombreEmpleado" placeholder="Nombre completo" required>
-                    <input type="email" id="emailEmpleado" placeholder="Email" required>
-                    <input type="password" id="passwordEmpleado" placeholder="Contraseña" required>
-                    <button type="submit">Crear Empleado</button>
-                </form>
+                <h1>Gestión de Empleados</h1>
+                <div class="form-section">
+                    <h3>Agregar Nuevo Empleado</h3>
+                    <form id="empleadoForm">
+                        <input type="text" id="nombreEmpleado" placeholder="Nombre completo" required>
+                        <input type="text" id="usernameEmpleado" placeholder="Usuario (para login)" required>
+                        <input type="password" id="passwordEmpleado" placeholder="Contraseña" required>
+                        <button type="submit">Agregar Empleado</button>
+                    </form>
+                </div>
                 <div class="table-container">
                     <h3>Empleados Registrados</h3>
                     <table id="empleadosTable">
-                        <thead><tr><th>Nombre</th><th>Email</th><th>Estado</th><th>Acciones</th></tr></thead>
+                        <thead><tr><th>Usuario</th><th>Nombre</th><th>Estado</th><th>Acciones</th></tr></thead>
                         <tbody id="empleadosList"></tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- Historial Tab -->
             <div id="historial" class="tab-content">
                 <h1>Historial de Lavados</h1>
                 <div class="filters">
-                    <input type="date" id="filtroFecha" placeholder="Filtrar por fecha">
+                    <input type="date" id="filtroFecha">
                     <select id="filtroEmpleado">
                         <option value="">Todos los empleados</option>
                     </select>
                 </div>
                 <div class="table-container">
                     <table id="historialTable">
-                        <thead><tr><th>Fecha</th><th>Empleado</th><th>Modelo</th><th>Matricula</th><th>Servicio</th><th>Precio</th><th>Comision</th></tr></thead>
+                        <thead><tr><th>Fecha</th><th>Empleado</th><th>Modelo</th><th>Matrícula</th><th>Servicio</th><th>Precio</th><th>Comisión</th></tr></thead>
                         <tbody id="historialList"></tbody>
                     </table>
                 </div>
             </div>
         </main>
     </div>
-    <script src="config.js"></script>
-    <script src="script.js"></script>
+    
+    <script>
+        // Configuración de Supabase
+        const SUPABASE_URL = 'https://ldalildhdukyjnvmjlsg.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkYWxpbGRoZHVreWpudm1qbHNnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNzcxMTYsImV4cCI6MjA5MTg1MzExNn0.f-sLoQgbtBfqmoPweJ0am7pnCIGiaZhkGaAjc_s8Y8A';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        // Verificar sesión
+        const usuarioData = sessionStorage.getItem('usuario');
+        if (!usuarioData) {
+            window.location.href = 'login.html';
+        }
+        
+        const usuario = JSON.parse(usuarioData);
+        if (usuario.rol !== 'admin') {
+            window.location.href = 'empleados.html';
+        }
+        
+        document.getElementById('userInfo').innerHTML = `👑 ${usuario.nombre}`;
+        
+        // Lista de empleados (se guarda en localStorage)
+        let empleados = JSON.parse(localStorage.getItem('empleados') || '[]');
+        
+        // Lista de servicios (se guarda en localStorage)
+        let servicios = JSON.parse(localStorage.getItem('servicios') || '[]');
+        
+        if (servicios.length === 0) {
+            servicios = [
+                { id: 1, tipo: 'auto', nombre: 'Lavado Básico Auto', precio_venta: 5000, comision_empleado: 1500 },
+                { id: 2, tipo: 'auto', nombre: 'Lavado Completo Auto', precio_venta: 8000, comision_empleado: 2400 },
+                { id: 3, tipo: 'moto', nombre: 'Lavado Básico Moto', precio_venta: 3000, comision_empleado: 900 }
+            ];
+            localStorage.setItem('servicios', JSON.stringify(servicios));
+        }
+        
+        // Cargar servicios en la tabla
+        function loadServicios() {
+            const tbody = document.getElementById('serviciosList');
+            tbody.innerHTML = servicios.map(s => `
+                <tr>
+                    <td>${s.tipo === 'auto' ? 'Auto' : 'Moto'}</td>
+                    <td>${s.nombre}</td>
+                    <td>$${s.precio_venta}</td>
+                    <td>$${s.comision_empleado}</td>
+                    <td><button class="delete-btn" onclick="deleteServicio(${s.id})">Eliminar</button></td>
+                </tr>
+            `).join('');
+        }
+        
+        // Agregar servicio
+        document.getElementById('servicioForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const nuevoServicio = {
+                id: Date.now(),
+                tipo: document.getElementById('tipoServicio').value,
+                nombre: document.getElementById('nombreServicio').value,
+                precio_venta: parseFloat(document.getElementById('precioVenta').value),
+                comision_empleado: parseFloat(document.getElementById('comisionEmpleado').value)
+            };
+            servicios.push(nuevoServicio);
+            localStorage.setItem('servicios', JSON.stringify(servicios));
+            loadServicios();
+            this.reset();
+            alert('Servicio agregado');
+        });
+        
+        window.deleteServicio = function(id) {
+            servicios = servicios.filter(s => s.id !== id);
+            localStorage.setItem('servicios', JSON.stringify(servicios));
+            loadServicios();
+        };
+        
+        // Cargar empleados
+        function loadEmpleados() {
+            const tbody = document.getElementById('empleadosList');
+            tbody.innerHTML = empleados.map(e => `
+                <tr>
+                    <td>${e.username}</td>
+                    <td>${e.nombre}</td>
+                    <td>Activo</td>
+                    <td><button class="delete-btn" onclick="deleteEmpleado('${e.username}')">Eliminar</button></td>
+                </tr>
+            `).join('');
+            
+            // Cargar filtro de empleados
+            const filtro = document.getElementById('filtroEmpleado');
+            if (filtro) {
+                filtro.innerHTML = '<option value="">Todos los empleados</option>' + 
+                    empleados.map(e => `<option value="${e.username}">${e.nombre}</option>`).join('');
+            }
+        }
+        
+        // Agregar empleado
+        document.getElementById('empleadoForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const nuevoEmpleado = {
+                username: document.getElementById('usernameEmpleado').value,
+                nombre: document.getElementById('nombreEmpleado').value,
+                password: document.getElementById('passwordEmpleado').value
+            };
+            empleados.push(nuevoEmpleado);
+            localStorage.setItem('empleados', JSON.stringify(empleados));
+            loadEmpleados();
+            this.reset();
+            alert('Empleado agregado. Puede usar estas credenciales para login.');
+        });
+        
+        window.deleteEmpleado = function(username) {
+            empleados = empleados.filter(e => e.username !== username);
+            localStorage.setItem('empleados', JSON.stringify(empleados));
+            loadEmpleados();
+        };
+        
+        // Cerrar sesión
+        document.getElementById('logoutBtn').onclick = function() {
+            sessionStorage.clear();
+            window.location.href = 'login.html';
+        };
+        
+        // Navegación entre tabs
+        document.querySelectorAll('.nav-item').forEach(btn => {
+            btn.onclick = function() {
+                document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                document.getElementById(this.dataset.tab).classList.add('active');
+            };
+        });
+        
+        // Inicializar
+        loadServicios();
+        loadEmpleados();
+        
+        // Cargar dashboard desde Supabase (los lavados reales)
+        async function loadDashboard() {
+            const { data: lavados } = await supabase.from('lavados').select('*');
+            if (lavados) {
+                const total = lavados.reduce((sum, l) => sum + l.precio_final, 0);
+                document.getElementById('gananciasMensuales').innerHTML = `$${total}`;
+                document.getElementById('totalLavados').innerHTML = lavados.length;
+            }
+        }
+        
+        loadDashboard();
+    </script>
+    <style>
+        .delete-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .delete-btn:hover {
+            background: #c82333;
+        }
+        .form-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #e94560;
+            margin-top: 10px;
+        }
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+        .sidebar {
+            width: 250px;
+            background: #1a1a2e;
+            color: white;
+            padding: 20px;
+        }
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .nav-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .nav-item {
+            background: transparent;
+            color: white;
+            border: none;
+            padding: 10px;
+            text-align: left;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .nav-item.active {
+            background: #e94560;
+        }
+        .logout-btn {
+            width: 100%;
+            padding: 10px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        table {
+            width: 100%;
+            background: white;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background: #f8f9fa;
+        }
+        input, select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background: #e94560;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .filters {
+            margin-bottom: 20px;
+        }
+        .filters input, .filters select {
+            margin-right: 10px;
+        }
+    </style>
 </body>
 </html>

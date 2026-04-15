@@ -1,409 +1,415 @@
-// ============================================
-// RAPTOR CAR WASH - LÓGICA PRINCIPAL
-// ============================================
+// Configuración de Supabase - ¡REEMPLAZA CON TUS DATOS!
+const SUPABASE_URL = 'https://ldalildhdukyjnvmjlsg.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkYWxpbGRoZHVreWpudm1qbHNnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNzcxMTYsImV4cCI6MjA5MTg1MzExNn0.f-sLoQgbtBfqmoPweJ0am7pnCIGiaZhkGaAjc_s8Y8A';
 
-// Configuración de Supabase (CAMBIAR ESTOS VALORES)
-const SUPABASE_URL = 'https://rpdcdoydkiwwcprkyfes.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJwZGNkb3lka2l3d2Nwcmt5ZmVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNzIxNDMsImV4cCI6MjA5MTg0ODE0M30.s3rGGVYPhqKS4IGznUA6jODTNmerF5l341H56XlAlk4';
-
+// Inicializar Supabase
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// ============================================
-// VARIABLES GLOBALES
-// ============================================
+// Variables globales
 let currentUser = null;
+let currentEmpleado = null;
 let gananciasChart = null;
 
-// ============================================
-// FUNCIONES DE AUTENTICACIÓN
-// ============================================
-async function checkSession() {
-    const { data: { user } } = await supabase.auth.getUser();
-    return user;
+// ==================== UTILIDADES ====================
+
+// Mostrar mensaje de error temporal
+function showError(message, elementId = null) {
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'error-message';
+    errorDiv.textContent = message;
+    
+    if (elementId) {
+        const element = document.getElementById(elementId);
+        element.insertBefore(errorDiv, element.firstChild);
+        setTimeout(() => errorDiv.remove(), 3000);
+    } else {
+        document.body.insertBefore(errorDiv, document.body.firstChild);
+        setTimeout(() => errorDiv.remove(), 3000);
+    }
 }
 
-async function login(email, password) {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) throw error;
-    return data;
+// Formatear fecha
+function formatDate(date) {
+    return new Date(date).toLocaleDateString('es-ES');
 }
 
+// ==================== AUTENTICACIÓN ====================
+
+// Verificar sesión actual
+async function checkAuth() {
+    const { data: { session }, error } = await supabase.auth.getSession();
+    
+    if (error || !session) {
+        // Redirigir a página de login (deberás crear login.html)
+        window.location.href = 'login.html';
+        return false;
+    }
+    
+    currentUser = session.user;
+    
+    // Verificar si es admin o empleado según la página actual
+    const isAdminPage = window.location.pathname.includes('admin.html');
+    
+    if (isAdminPage) {
+        // Verificar si el usuario es admin (podrías tener una tabla de admins)
+        // Por simplicidad, asumimos que el primer usuario es admin
+        const { data: adminCheck, error: adminError } = await supabase
+            .from('empleados')
+            .select('*')
+            .eq('user_id', currentUser.id)
+            .single();
+        
+        // Si no es admin y está en admin.html, redirigir
+        if (!adminError && adminCheck) {
+            // Es empleado, redirigir a empleados.html
+            window.location.href = 'empleados.html';
+        }
+    } else {
+        // En empleados.html, verificar que sea empleado
+        const { data: empleado, error: empError } = await supabase
+            .from('empleados')
+            .select('*')
+            .eq('user_id', currentUser.id)
+            .single();
+        
+        if (empError || !empleado) {
+            showError('No tienes permisos de empleado');
+            setTimeout(() => {
+                window.location.href = 'login.html';
+            }, 2000);
+            return false;
+        }
+        
+        currentEmpleado = empleado;
+    }
+    
+    return true;
+}
+
+// Cerrar sesión
 async function logout() {
     await supabase.auth.signOut();
-    window.location.reload();
+    window.location.href = 'login.html';
 }
 
-// ============================================
-// FUNCIONES DE ADMIN (solo para admin.html)
-// ============================================
+// ==================== ADMINISTRACIÓN ====================
 
-// Verificar si el usuario es admin
-async function isAdmin() {
-    const user = await checkSession();
-    if (!user) return false;
-    const { data } = await supabase.from('perfiles').select('rol').eq('id', user.id).single();
-    return data?.rol === 'admin';
-}
-
-// Cargar estadísticas generales
-async function loadEstadisticasGenerales() {
-    const { data: lavados } = await supabase.from('lavados').select('precio_final, comision_ganada');
-    const { data: gastos } = await supabase.from('gastos').select('monto');
-    
-    const ingresos = lavados?.reduce((s, l) => s + l.precio_final, 0) || 0;
-    const comisiones = lavados?.reduce((s, l) => s + l.comision_ganada, 0) || 0;
-    const gastosTotal = gastos?.reduce((s, g) => s + g.monto, 0) || 0;
-    const ganancia = ingresos - comisiones - gastosTotal;
-    
-    document.getElementById('totalIngresos') && (document.getElementById('totalIngresos').innerText = `$${ingresos.toFixed(2)}`);
-    document.getElementById('totalGastos') && (document.getElementById('totalGastos').innerText = `$${gastosTotal.toFixed(2)}`);
-    document.getElementById('gananciaNeta') && (document.getElementById('gananciaNeta').innerText = `$${ganancia.toFixed(2)}`);
-    document.getElementById('totalComisiones') && (document.getElementById('totalComisiones').innerText = `$${comisiones.toFixed(2)}`);
-    
-    const gananciaElement = document.getElementById('gananciaNeta');
-    if (gananciaElement) {
-        if (ganancia >= 0) {
-            gananciaElement.className = 'stat-value positive';
-        } else {
-            gananciaElement.className = 'stat-value negative';
-        }
+// Cargar dashboard con estadísticas
+async function loadDashboard() {
+    try {
+        const fechaInicio = new Date();
+        fechaInicio.setDate(1); // Primer día del mes actual
+        fechaInicio.setHours(0, 0, 0, 0);
+        
+        // Obtener lavados del mes
+        const { data: lavados, error: lavadosError } = await supabase
+            .from('lavados')
+            .select('*')
+            .gte('fecha', fechaInicio.toISOString());
+        
+        if (lavadosError) throw lavadosError;
+        
+        // Obtener gastos del mes
+        const { data: gastos, error: gastosError } = await supabase
+            .from('gastos')
+            .select('*')
+            .gte('fecha', fechaInicio.toISOString());
+        
+        if (gastosError) throw gastosError;
+        
+        const ganancias = lavados?.reduce((sum, l) => sum + l.precio_final, 0) || 0;
+        const totalGastos = gastos?.reduce((sum, g) => sum + g.monto, 0) || 0;
+        const gananciaNeta = ganancias - totalGastos;
+        
+        document.getElementById('gananciasMensuales').textContent = `$${ganancias.toFixed(2)}`;
+        document.getElementById('gastosMensuales').textContent = `$${totalGastos.toFixed(2)}`;
+        document.getElementById('gananciaNeta').textContent = `$${gananciaNeta.toFixed(2)}`;
+        document.getElementById('totalLavados').textContent = lavados?.length || 0;
+        
+        // Actualizar gráfico
+        updateChart(lavados || []);
+        
+    } catch (error) {
+        console.error('Error cargando dashboard:', error);
+        showError('Error al cargar el dashboard');
     }
 }
 
-// Cargar gráfico de ganancias por empleado
-async function loadGraficoGanancias() {
-    const { data: empleados } = await supabase.from('perfiles').select('id, nombre').eq('rol', 'empleado');
-    const labels = [];
-    const dataGanancias = [];
+// Actualizar gráfico de ganancias
+async function updateChart(lavados) {
+    const gananciasPorDia = {};
+    lavados.forEach(lavado => {
+        const fecha = formatDate(lavado.fecha);
+        gananciasPorDia[fecha] = (gananciasPorDia[fecha] || 0) + lavado.precio_final;
+    });
     
-    for (let emp of empleados) {
-        const { data: lavados } = await supabase.from('lavados')
-            .select('precio_final')
-            .eq('empleado_id', emp.id);
-        const total = lavados?.reduce((s, l) => s + l.precio_final, 0) || 0;
-        labels.push(emp.nombre.split(' ')[0]);
-        dataGanancias.push(total);
-    }
+    const fechas = Object.keys(gananciasPorDia).sort();
+    const valores = fechas.map(f => gananciasPorDia[f]);
     
     const ctx = document.getElementById('gananciasChart')?.getContext('2d');
     if (!ctx) return;
     
-    if (gananciasChart) gananciasChart.destroy();
+    if (gananciasChart) {
+        gananciasChart.destroy();
+    }
     
     gananciasChart = new Chart(ctx, {
-        type: 'bar',
+        type: 'line',
         data: {
-            labels: labels,
+            labels: fechas,
             datasets: [{
-                label: 'Ganancias por empleado ($)',
-                data: dataGanancias,
-                backgroundColor: '#ef4444',
-                borderRadius: 8
+                label: 'Ganancias por día',
+                data: valores,
+                borderColor: '#e94560',
+                backgroundColor: 'rgba(233, 69, 96, 0.1)',
+                tension: 0.4,
+                fill: true
             }]
         },
         options: {
             responsive: true,
-            maintainAspectRatio: true,
             plugins: {
-                legend: { labels: { color: '#e0e0e0' } }
-            },
-            scales: {
-                y: { ticks: { color: '#e0e0e0' }, grid: { color: '#3f3f3f' } },
-                x: { ticks: { color: '#e0e0e0' }, grid: { color: '#3f3f3f' } }
+                legend: {
+                    position: 'top',
+                }
             }
         }
     });
 }
 
+// Cargar servicios para gestión de precios
+async function loadServicios() {
+    try {
+        const { data: servicios, error } = await supabase
+            .from('servicios')
+            .select('*')
+            .order('tipo', { ascending: true });
+        
+        if (error) throw error;
+        
+        const tbody = document.getElementById('serviciosList');
+        if (!tbody) return;
+        
+        tbody.innerHTML = servicios.map(s => `
+            <tr>
+                <td>${s.tipo === 'auto' ? 'Auto' : 'Moto'}</td>
+                <td>${s.nombre}</td>
+                <td>$${s.precio_venta.toFixed(2)}</td>
+                <td>$${s.comision_empleado.toFixed(2)}</td>
+                <td><button class="delete-btn" onclick="deleteServicio(${s.id})">Eliminar</button></td>
+            </tr>
+        `).join('');
+        
+    } catch (error) {
+        console.error('Error cargando servicios:', error);
+    }
+}
+
+// Agregar nuevo servicio
+async function addServicio(event) {
+    event.preventDefault();
+    
+    const nuevoServicio = {
+        tipo: document.getElementById('tipoServicio').value,
+        nombre: document.getElementById('nombreServicio').value,
+        precio_venta: parseFloat(document.getElementById('precioVenta').value),
+        comision_empleado: parseFloat(document.getElementById('comisionEmpleado').value),
+        activo: true
+    };
+    
+    try {
+        const { error } = await supabase
+            .from('servicios')
+            .insert([nuevoServicio]);
+        
+        if (error) throw error;
+        
+        // Limpiar formulario
+        document.getElementById('servicioForm').reset();
+        // Recargar lista
+        loadServicios();
+        showError('Servicio agregado correctamente');
+        
+    } catch (error) {
+        console.error('Error agregando servicio:', error);
+        showError('Error al agregar servicio');
+    }
+}
+
+// Eliminar servicio
+window.deleteServicio = async (id) => {
+    if (!confirm('¿Eliminar este servicio?')) return;
+    
+    try {
+        const { error } = await supabase
+            .from('servicios')
+            .delete()
+            .eq('id', id);
+        
+        if (error) throw error;
+        
+        loadServicios();
+        showError('Servicio eliminado');
+        
+    } catch (error) {
+        console.error('Error eliminando servicio:', error);
+        showError('Error al eliminar servicio');
+    }
+};
+
 // Cargar empleados
 async function loadEmpleados() {
-    const { data } = await supabase.from('perfiles').select('*').eq('rol', 'empleado');
-    const container = document.getElementById('empleadosList');
-    if (!container) return;
-    
-    container.innerHTML = '';
-    data?.forEach(emp => {
-        container.innerHTML += `
-            <div class="empleado-item">
-                <div class="empleado-info">
-                    <div class="empleado-nombre">${emp.nombre}</div>
-                    <div class="empleado-email">${emp.email}</div>
-                </div>
-                <button class="btn-small" onclick="window.eliminarEmpleado('${emp.id}')">Eliminar</button>
-            </div>
-        `;
-    });
-}
-
-// Eliminar empleado (se expone globalmente)
-window.eliminarEmpleado = async (id) => {
-    if (confirm('¿Eliminar empleado? Se eliminarán todos sus lavados.')) {
-        await supabase.from('perfiles').delete().eq('id', id);
-        loadEmpleados();
-        loadReporteEmpleados();
-        loadEstadisticasGenerales();
-        loadGraficoGanancias();
-    }
-};
-
-// Crear empleado
-async function crearEmpleado(nombre, email, password) {
-    const { data: { user }, error } = await supabase.auth.signUp({ email, password });
-    if (error) throw error;
-    await supabase.from('perfiles').insert([{ id: user.id, nombre, email, rol: 'empleado' }]);
-}
-
-// Cargar tipos de lavado
-async function loadTipos() {
-    const { data } = await supabase.from('tipos_lavado').select('*').order('id');
-    const container = document.getElementById('tiposList');
-    if (!container) return;
-    
-    container.innerHTML = '';
-    data?.forEach(t => {
-        container.innerHTML += `
-            <div class="tipo-item">
-                <div>
-                    <strong>${t.nombre}</strong> (${t.tipo_vehiculo})<br>
-                    💰 $${t.precio_total} | 🧾 Comisión: $${t.comision_empleado}
-                </div>
-                <button class="btn-small" onclick="window.eliminarTipo(${t.id})">Eliminar</button>
-            </div>
-        `;
-    });
-}
-
-// Eliminar tipo de lavado
-window.eliminarTipo = async (id) => {
-    if (confirm('¿Eliminar tipo de lavado?')) {
-        await supabase.from('tipos_lavado').delete().eq('id', id);
-        loadTipos();
-    }
-};
-
-// Crear tipo de lavado
-async function crearTipoLavado(nombre, tipo_vehiculo, precio_total, comision_empleado) {
-    await supabase.from('tipos_lavado').insert([{ nombre, tipo_vehiculo, precio_total, comision_empleado }]);
-}
-
-// Cargar gastos con filtros
-async function loadGastos(filtros = {}) {
-    let query = supabase.from('gastos').select('*').order('fecha', { ascending: false });
-    
-    if (filtros.fechaInicio) query = query.gte('fecha', filtros.fechaInicio);
-    if (filtros.fechaFin) query = query.lte('fecha', filtros.fechaFin);
-    if (filtros.categoria && filtros.categoria !== '') query = query.eq('categoria', filtros.categoria);
-    
-    const { data } = await query;
-    const container = document.getElementById('gastosList');
-    if (!container) return;
-    
-    container.innerHTML = '';
-    let total = 0;
-    data?.forEach(g => {
-        total += g.monto;
-        container.innerHTML += `
-            <div class="gasto-item">
-                <div class="gasto-info">
-                    <div class="gasto-concepto">${g.concepto}</div>
-                    <div class="gasto-categoria">${g.categoria}</div>
-                    <div class="badge">${new Date(g.fecha).toLocaleDateString()}</div>
-                </div>
-                <div class="gasto-monto">$${g.monto.toFixed(2)}</div>
-                <button class="btn-small" onclick="window.eliminarGasto(${g.id})">🗑️</button>
-            </div>
-        `;
-    });
-    
-    const totalContainer = document.getElementById('totalGastosFiltrados');
-    if (totalContainer) totalContainer.innerHTML = `<strong>Total filtrado: $${total.toFixed(2)}</strong>`;
-}
-
-// Eliminar gasto
-window.eliminarGasto = async (id) => {
-    if (confirm('¿Eliminar este gasto?')) {
-        await supabase.from('gastos').delete().eq('id', id);
-        aplicarFiltrosGastos();
-        loadEstadisticasGenerales();
-    }
-};
-
-// Crear gasto
-async function crearGasto(concepto, categoria, monto, fecha) {
-    await supabase.from('gastos').insert([{ concepto, categoria, monto, fecha }]);
-}
-
-// Aplicar filtros de gastos
-function aplicarFiltrosGastos() {
-    const filtros = {
-        fechaInicio: document.getElementById('filtroFechaInicio')?.value,
-        fechaFin: document.getElementById('filtroFechaFin')?.value,
-        categoria: document.getElementById('filtroCategoria')?.value
-    };
-    loadGastos(filtros);
-}
-
-// Cargar reporte de empleados
-async function loadReporteEmpleados() {
-    const { data: empleados } = await supabase.from('perfiles').select('id, nombre').eq('rol', 'empleado');
-    const container = document.getElementById('reporteEmpleados');
-    if (!container) return;
-    
-    container.innerHTML = '';
-    
-    for (let emp of empleados) {
-        const { data: lavados } = await supabase.from('lavados')
-            .select('precio_final, comision_ganada')
-            .eq('empleado_id', emp.id);
-        const totalRecaudado = lavados?.reduce((s, l) => s + l.precio_final, 0) || 0;
-        const totalComisiones = lavados?.reduce((s, l) => s + l.comision_ganada, 0) || 0;
-        const ganancia = totalRecaudado - totalComisiones;
+    try {
+        const { data: empleados, error } = await supabase
+            .from('empleados')
+            .select('*')
+            .order('created_at', { ascending: false });
         
-        container.innerHTML += `
-            <div class="reporte-item">
-                <strong>${emp.nombre}</strong><br>
-                💰 Recaudado: $${totalRecaudado.toFixed(2)}<br>
-                🧾 Comisiones: $${totalComisiones.toFixed(2)}<br>
-                📈 Ganancia local: $${ganancia.toFixed(2)}
-            </div>
-        `;
+        if (error) throw error;
+        
+        const tbody = document.getElementById('empleadosList');
+        if (!tbody) return;
+        
+        tbody.innerHTML = empleados.map(e => `
+            <tr>
+                <td>${e.nombre}</td>
+                <td>${e.email}</td>
+                <td>${e.activo ? 'Activo' : 'Inactivo'}</td>
+                <td><button class="delete-btn" onclick="deleteEmpleado('${e.id}')">Eliminar</button></td>
+            </tr>
+        `).join('');
+        
+    } catch (error) {
+        console.error('Error cargando empleados:', error);
     }
 }
 
-// Cargar estadísticas mensuales
-async function loadEstadisticasMensuales() {
-    const { data } = await supabase.from('estadisticas_mensuales').select('*').limit(6);
-    const container = document.getElementById('estadisticasMensuales');
-    if (!container) return;
+// Crear nuevo empleado (usuario en auth)
+async function createEmpleado(event) {
+    event.preventDefault();
     
-    container.innerHTML = '';
+    const email = document.getElementById('emailEmpleado').value;
+    const password = document.getElementById('passwordEmpleado').value;
+    const nombre = document.getElementById('nombreEmpleado').value;
     
-    data?.forEach(est => {
-        const mes = new Date(est.mes).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
-        container.innerHTML += `
-            <div class="reporte-item">
-                <strong>📅 ${mes}</strong><br>
-                🚗 Lavados: ${est.total_lavados}<br>
-                💰 Ingresos: $${est.ingresos_brutos.toFixed(2)}<br>
-                💸 Gastos: $${est.total_gastos.toFixed(2)}<br>
-                📈 Ganancia Neta: <span class="${est.ganancia_neta >= 0 ? 'positive' : 'negative'}">$${est.ganancia_neta.toFixed(2)}</span>
-            </div>
-        `;
-    });
-}
-
-// ============================================
-// FUNCIONES DE EMPLEADO (solo para empleado.html)
-// ============================================
-
-// Cargar tipos de lavado para empleado
-async function loadTiposEmpleado() {
-    const { data } = await supabase.from('tipos_lavado').select('*');
-    const select = document.getElementById('tipoLavado');
-    if (!select) return;
-    
-    select.innerHTML = '';
-    data?.forEach(t => {
-        const option = document.createElement('option');
-        option.value = t.id;
-        option.textContent = `${t.nombre} (${t.tipo_vehiculo}) - $${t.precio_total}`;
-        option.dataset.precio = t.precio_total;
-        option.dataset.comision = t.comision_empleado;
-        select.appendChild(option);
-    });
-    actualizarPrecioYComision();
-}
-
-// Actualizar precio y comisión al seleccionar tipo
-function actualizarPrecioYComision() {
-    const select = document.getElementById('tipoLavado');
-    if (!select) return;
-    const selectedOption = select.options[select.selectedIndex];
-    if (selectedOption) {
-        const precioSpan = document.getElementById('precioFinalMostrado');
-        const comisionSpan = document.getElementById('comisionMostrada');
-        if (precioSpan) precioSpan.innerText = selectedOption.dataset.precio;
-        if (comisionSpan) comisionSpan.innerText = selectedOption.dataset.comision;
+    try {
+        // Crear usuario en auth
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+            email: email,
+            password: password
+        });
+        
+        if (authError) throw authError;
+        
+        // Crear registro en tabla empleados
+        const { error: empError } = await supabase
+            .from('empleados')
+            .insert([{
+                user_id: authData.user.id,
+                nombre: nombre,
+                email: email,
+                activo: true
+            }]);
+        
+        if (empError) throw empError;
+        
+        document.getElementById('empleadoForm').reset();
+        loadEmpleados();
+        showError('Empleado creado correctamente');
+        
+    } catch (error) {
+        console.error('Error creando empleado:', error);
+        showError('Error al crear empleado: ' + error.message);
     }
 }
 
-// Cargar historial de lavados del empleado
-async function loadHistorialEmpleado(empleadoId) {
-    const { data } = await supabase.from('lavados')
-        .select(`id, matricula, observaciones, precio_final, comision_ganada, created_at, tipos_lavado(nombre)`)
-        .eq('empleado_id', empleadoId)
-        .order('created_at', { ascending: false });
+// Eliminar empleado
+window.deleteEmpleado = async (id) => {
+    if (!confirm('¿Eliminar este empleado?')) return;
     
-    const container = document.getElementById('historialLavados');
-    if (!container) return;
-    
-    container.innerHTML = '';
-    data?.forEach(l => {
-        container.innerHTML += `
-            <div class="lavado-item">
-                <div><strong>${l.tipos_lavado.nombre}</strong> - $${l.precio_final}</div>
-                <div class="badge">${l.matricula}</div>
-                <div class="badge">Comisión: $${l.comision_ganada}</div>
-                <div class="badge">${new Date(l.created_at).toLocaleString()}</div>
-                ${l.observaciones ? `<div class="badge">📝 ${l.observaciones}</div>` : ''}
-            </div>
-        `;
-    });
+    try {
+        const { error } = await supabase
+            .from('empleados')
+            .delete()
+            .eq('id', id);
+        
+        if (error) throw error;
+        
+        loadEmpleados();
+        showError('Empleado eliminado');
+        
+    } catch (error) {
+        console.error('Error eliminando empleado:', error);
+        showError('Error al eliminar empleado');
+    }
+};
+
+// Cargar historial completo
+async function loadHistorial() {
+    try {
+        let query = supabase
+            .from('lavados')
+            .select(`
+                *,
+                empleados (nombre),
+                servicios (nombre)
+            `)
+            .order('fecha', { ascending: false });
+        
+        const fechaFiltro = document.getElementById('filtroFecha')?.value;
+        if (fechaFiltro) {
+            const startDate = new Date(fechaFiltro);
+            startDate.setHours(0, 0, 0, 0);
+            const endDate = new Date(fechaFiltro);
+            endDate.setHours(23, 59, 59, 999);
+            query = query.gte('fecha', startDate.toISOString())
+                         .lte('fecha', endDate.toISOString());
+        }
+        
+        const empleadoFiltro = document.getElementById('filtroEmpleado')?.value;
+        if (empleadoFiltro) {
+            query = query.eq('empleado_id', empleadoFiltro);
+        }
+        
+        const { data: lavados, error } = await query;
+        
+        if (error) throw error;
+        
+        const tbody = document.getElementById('historialList');
+        if (!tbody) return;
+        
+        tbody.innerHTML = lavados.map(l => `
+            <tr>
+                <td>${formatDate(l.fecha)}</td>
+                <td>${l.empleados?.nombre || 'N/A'}</td>
+                <td>${l.modelo_auto}</td>
+                <td>${l.matricula}</td>
+                <td>${l.servicios?.nombre || 'N/A'}</td>
+                <td>$${l.precio_final.toFixed(2)}</td>
+                <td>$${l.comision_ganada.toFixed(2)}</td>
+            </tr>
+        `).join('');
+        
+    } catch (error) {
+        console.error('Error cargando historial:', error);
+    }
 }
 
-// Registrar nuevo lavado
-async function registrarLavado(empleadoId, tipoLavadoId, matricula, observaciones, precioFinal, comisionGanada) {
-    const { error } = await supabase.from('lavados').insert([{
-        empleado_id: empleadoId,
-        tipo_lavado_id: tipoLavadoId,
-        matricula,
-        observaciones,
-        precio_final: precioFinal,
-        comision_ganada: comisionGanada
-    }]);
-    if (error) throw error;
-}
-
-// Cargar estadísticas personales del empleado
-async function loadMisEstadisticas(empleadoId) {
-    const { data: lavados } = await supabase.from('lavados')
-        .select('precio_final, comision_ganada')
-        .eq('empleado_id', empleadoId);
-    
-    const total = lavados?.reduce((s, l) => s + l.precio_final, 0) || 0;
-    const comisiones = lavados?.reduce((s, l) => s + l.comision_ganada, 0) || 0;
-    const cantidad = lavados?.length || 0;
-    
-    const totalElement = document.getElementById('miTotalRecaudado');
-    const comisionesElement = document.getElementById('misComisiones');
-    const cantidadElement = document.getElementById('misLavados');
-    
-    if (totalElement) totalElement.innerText = `$${total.toFixed(2)}`;
-    if (comisionesElement) comisionesElement.innerText = `$${comisiones.toFixed(2)}`;
-    if (cantidadElement) cantidadElement.innerText = cantidad;
-}
-
-// ============================================
-// EXPORTAR FUNCIONES GLOBALES (para usar en HTML)
-// ============================================
-window.supabaseClient = supabase;
-window.checkSession = checkSession;
-window.login = login;
-window.logout = logout;
-window.isAdmin = isAdmin;
-window.loadEstadisticasGenerales = loadEstadisticasGenerales;
-window.loadGraficoGanancias = loadGraficoGanancias;
-window.loadEmpleados = loadEmpleados;
-window.crearEmpleado = crearEmpleado;
-window.loadTipos = loadTipos;
-window.crearTipoLavado = crearTipoLavado;
-window.loadGastos = loadGastos;
-window.crearGasto = crearGasto;
-window.aplicarFiltrosGastos = aplicarFiltrosGastos;
-window.loadReporteEmpleados = loadReporteEmpleados;
-window.loadEstadisticasMensuales = loadEstadisticasMensuales;
-window.loadTiposEmpleado = loadTiposEmpleado;
-window.actualizarPrecioYComision = actualizarPrecioYComision;
-window.loadHistorialEmpleado = loadHistorialEmpleado;
-window.registrarLavado = registrarLavado;
-window.loadMisEstadisticas = loadMisEstadisticas;
+// Cargar empleados para filtro
+async function loadEmpleadosFiltro() {
+    try {
+        const { data: empleados, error } = await supabase
+            .from('empleados')
+            .select('id, nombre')
+            .eq('activo', true);
+        
+        if (error) throw error;
+        
+        const select = document.getElementById('filtroEmpleado');
+        if (select) {
+            select.innerHTML = '<option value="">Todos los empleados</option>' +
+                empleados.map(e => `<option value="${e.id}">${e.nombre}</option>`).join('');
+        }
+        
+    } catch (error) {
+       

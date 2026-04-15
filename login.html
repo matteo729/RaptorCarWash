@@ -33,16 +33,17 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
         
-        .login-box h1 {
+        h1 {
             text-align: center;
             color: #1a1a2e;
-            margin-bottom: 0.5rem;
+            margin-bottom: 5px;
         }
         
-        .login-subtitle {
+        .subtitle {
             text-align: center;
             color: #666;
-            margin-bottom: 2rem;
+            margin-bottom: 25px;
+            font-size: 14px;
         }
         
         input {
@@ -51,7 +52,8 @@
             margin-bottom: 15px;
             border: 1px solid #ddd;
             border-radius: 6px;
-            font-size: 16px;
+            font-size: 14px;
+            box-sizing: border-box;
         }
         
         input:focus {
@@ -65,7 +67,7 @@
             border: none;
             border-radius: 6px;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 14px;
             font-weight: bold;
             margin-bottom: 10px;
         }
@@ -92,7 +94,8 @@
             padding: 10px;
             border-radius: 6px;
             margin-bottom: 15px;
-            font-size: 14px;
+            font-size: 13px;
+            text-align: center;
         }
         
         .error {
@@ -117,12 +120,14 @@
             text-align: center;
             margin: 15px 0;
             color: #999;
+            font-size: 12px;
         }
         
         .section-title {
-            font-size: 18px;
+            font-size: 16px;
             margin-bottom: 20px;
             text-align: center;
+            font-weight: bold;
             color: #333;
         }
     </style>
@@ -131,30 +136,30 @@
 <body>
     <div class="login-container">
         <div class="login-box">
-            <h1>RAPTOR CARWASH</h1>
-            <p class="login-subtitle">Sistema de Gestión</p>
+            <h1>🦅 RAPTOR CARWASH</h1>
+            <div class="subtitle">Sistema de Gestión</div>
             
             <div id="messageBox"></div>
             
-            <!-- SECCIÓN LOGIN (visible por defecto) -->
+            <!-- Login Section -->
             <div id="loginSection">
-                <div class="section-title">🔐 INICIAR SESIÓN</div>
-                <input type="email" id="loginEmail" placeholder="Correo electrónico">
+                <div class="section-title">INICIAR SESIÓN</div>
+                <input type="email" id="loginEmail" placeholder="Email">
                 <input type="password" id="loginPassword" placeholder="Contraseña">
-                <button id="doLoginBtn" class="btn-primary">INGRESAR</button>
+                <button id="loginBtn" class="btn-primary">INGRESAR</button>
                 <div class="divider">────────── o ──────────</div>
-                <button id="goToRegisterBtn" class="btn-secondary">CREAR CUENTA NUEVA</button>
+                <button id="showRegisterBtn" class="btn-secondary">CREAR CUENTA</button>
             </div>
             
-            <!-- SECCIÓN REGISTRO (oculta al inicio) -->
+            <!-- Register Section -->
             <div id="registerSection" style="display: none;">
-                <div class="section-title">📝 CREAR CUENTA</div>
+                <div class="section-title">CREAR CUENTA</div>
                 <input type="text" id="regNombre" placeholder="Nombre completo">
-                <input type="email" id="regEmail" placeholder="Correo electrónico">
+                <input type="email" id="regEmail" placeholder="Email">
                 <input type="password" id="regPassword" placeholder="Contraseña (mínimo 6 caracteres)">
-                <button id="doRegisterBtn" class="btn-primary">REGISTRARME</button>
+                <button id="registerBtn" class="btn-primary">REGISTRARSE</button>
                 <div class="divider">────────── o ──────────</div>
-                <button id="goToLoginBtn" class="btn-secondary">VOLVER AL LOGIN</button>
+                <button id="showLoginBtn" class="btn-secondary">VOLVER AL LOGIN</button>
             </div>
         </div>
     </div>
@@ -164,8 +169,12 @@
         const SUPABASE_URL = 'https://ldalildhdukyjnvmjlsg.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkYWxpbGRoZHVreWpudm1qbHNnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNzcxMTYsImV4cCI6MjA5MTg1MzExNn0.f-sLoQgbtBfqmoPweJ0am7pnCIGiaZhkGaAjc_s8Y8A';
         
+        // Inicializar Supabase
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
+        console.log("✅ App iniciada");
+        
+        // Función para mostrar mensajes
         function showMessage(text, type) {
             const box = document.getElementById('messageBox');
             box.innerHTML = `<div class="message ${type}">${text}</div>`;
@@ -176,142 +185,86 @@
             }, 5000);
         }
         
-        // Cambiar a registro
-        document.getElementById('goToRegisterBtn').onclick = function() {
+        // Cambiar entre secciones
+        document.getElementById('showRegisterBtn').onclick = () => {
             document.getElementById('loginSection').style.display = 'none';
             document.getElementById('registerSection').style.display = 'block';
             document.getElementById('messageBox').innerHTML = '';
         };
         
-        // Cambiar a login
-        document.getElementById('goToLoginBtn').onclick = function() {
+        document.getElementById('showLoginBtn').onclick = () => {
             document.getElementById('loginSection').style.display = 'block';
             document.getElementById('registerSection').style.display = 'none';
             document.getElementById('messageBox').innerHTML = '';
         };
         
-        // FUNCIÓN DE REGISTRO - Esta es la importante
-        document.getElementById('doRegisterBtn').onclick = async function() {
-            console.log("✅ Botón REGISTRAR presionado");
+        // FUNCIÓN DE REGISTRO
+        document.getElementById('registerBtn').onclick = async () => {
+            console.log("Registro: Iniciando...");
             
             const nombre = document.getElementById('regNombre').value;
             const email = document.getElementById('regEmail').value;
             const password = document.getElementById('regPassword').value;
             
-            // Validaciones
-            if (!nombre) {
-                showMessage('❌ Por favor, ingresa tu nombre completo', 'error');
-                return;
-            }
-            if (!email) {
-                showMessage('❌ Por favor, ingresa tu correo electrónico', 'error');
-                return;
-            }
-            if (!password) {
-                showMessage('❌ Por favor, ingresa una contraseña', 'error');
-                return;
-            }
-            if (password.length < 6) {
-                showMessage('❌ La contraseña debe tener al menos 6 caracteres', 'error');
+            if (!nombre || !email || !password) {
+                showMessage("Completa todos los campos", "error");
                 return;
             }
             
-            showMessage('⏳ Creando usuario...', 'info');
+            if (password.length < 6) {
+                showMessage("La contraseña debe tener al menos 6 caracteres", "error");
+                return;
+            }
+            
+            showMessage("Creando usuario...", "info");
             
             try {
-                // Crear usuario en Supabase
-                const { data: authData, error: signUpError } = await supabase.auth.signUp({
+                // Crear usuario
+                const { data, error } = await supabase.auth.signUp({
                     email: email,
                     password: password,
                     options: {
-                        data: { 
-                            full_name: nombre 
-                        }
+                        data: { full_name: nombre }
                     }
                 });
                 
-                if (signUpError) {
-                    console.error("Error de registro:", signUpError);
-                    showMessage('❌ Error: ' + signUpError.message, 'error');
+                if (error) {
+                    console.error("Error registro:", error);
+                    showMessage("Error: " + error.message, "error");
                     return;
                 }
                 
-                if (!authData.user) {
-                    showMessage('❌ Error al crear el usuario', 'error');
-                    return;
-                }
+                console.log("Usuario creado:", data);
+                showMessage("¡Usuario creado exitosamente! Ahora puedes iniciar sesión.", "success");
                 
-                console.log("Usuario creado:", authData.user.id);
-                
-                // Verificar si es el primer usuario (admin)
-                let esAdmin = false;
-                try {
-                    const { count, error: countError } = await supabase
-                        .from('empleados')
-                        .select('*', { count: 'exact', head: true });
-                    
-                    if (countError) {
-                        console.log("Error al contar empleados, asumiendo que es admin:", countError);
-                        esAdmin = true;
-                    } else {
-                        esAdmin = (count === 0);
-                    }
-                } catch (e) {
-                    console.log("Error verificando empleados, asumiendo admin:", e);
-                    esAdmin = true;
-                }
-                
-                if (esAdmin) {
-                    showMessage('✅ ¡Administrador creado exitosamente! Ya puedes iniciar sesión.', 'success');
-                } else {
-                    // Agregar como empleado
-                    const { error: empError } = await supabase
-                        .from('empleados')
-                        .insert([{
-                            user_id: authData.user.id,
-                            nombre: nombre,
-                            email: email,
-                            activo: true
-                        }]);
-                    
-                    if (empError) {
-                        console.error("Error al crear empleado:", empError);
-                        showMessage('⚠️ Usuario creado pero hay error de configuración', 'error');
-                    } else {
-                        showMessage('✅ ¡Empleado creado exitosamente!', 'success');
-                    }
-                }
-                
-                // Limpiar formulario
+                // Limpiar y volver al login
                 document.getElementById('regNombre').value = '';
                 document.getElementById('regEmail').value = '';
                 document.getElementById('regPassword').value = '';
                 
-                // Volver al login después de 2 segundos
                 setTimeout(() => {
-                    document.getElementById('goToLoginBtn').click();
-                    showMessage('🔐 Ahora puedes iniciar sesión con tus credenciales', 'success');
+                    document.getElementById('showLoginBtn').click();
                 }, 2000);
                 
-            } catch (error) {
-                console.error("Error inesperado:", error);
-                showMessage('❌ Error inesperado: ' + error.message, 'error');
+            } catch (err) {
+                console.error("Error:", err);
+                showMessage("Error: " + err.message, "error");
             }
         };
         
         // FUNCIÓN DE LOGIN
-        document.getElementById('doLoginBtn').onclick = async function() {
-            console.log("✅ Botón LOGIN presionado");
+        document.getElementById('loginBtn').onclick = async () => {
+            console.log("Login: Iniciando...");
             
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
             
             if (!email || !password) {
-                showMessage('❌ Por favor, completa todos los campos', 'error');
+                showMessage("Completa todos los campos", "error");
                 return;
             }
             
-            showMessage('⏳ Iniciando sesión...', 'info');
+            showMessage("Iniciando sesión...", "info");
             
             try {
                 const { data, error } = await supabase.auth.signInWithPassword({
@@ -320,45 +273,32 @@
                 });
                 
                 if (error) {
-                    showMessage('❌ Error: ' + error.message, 'error');
+                    console.error("Error login:", error);
+                    showMessage("Error: " + error.message, "error");
                     return;
                 }
                 
-                if (data.user) {
-                    showMessage('✅ ¡Login exitoso! Redirigiendo...', 'success');
-                    
-                    // Verificar si es empleado o admin
-                    const { data: empleado } = await supabase
-                        .from('empleados')
-                        .select('*')
-                        .eq('user_id', data.user.id)
-                        .single();
-                    
-                    setTimeout(() => {
-                        if (empleado) {
-                            window.location.href = 'empleados.html';
-                        } else {
-                            window.location.href = 'admin.html';
-                        }
-                    }, 1500);
-                }
+                console.log("Login exitoso:", data);
+                showMessage("¡Bienvenido! Redirigiendo...", "success");
                 
-            } catch (error) {
-                showMessage('❌ Error: ' + error.message, 'error');
+                setTimeout(() => {
+                    window.location.href = 'admin.html';
+                }, 1500);
+                
+            } catch (err) {
+                console.error("Error:", err);
+                showMessage("Error: " + err.message, "error");
             }
         };
         
-        // Permitir Enter en los campos
-        document.getElementById('loginPassword').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') document.getElementById('doLoginBtn').click();
+        // Enter key support
+        document.getElementById('loginPassword').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') document.getElementById('loginBtn').click();
         });
         
-        document.getElementById('regPassword').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') document.getElementById('doRegisterBtn').click();
+        document.getElementById('regPassword').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') document.getElementById('registerBtn').click();
         });
-        
-        console.log("✅ Aplicación cargada correctamente");
-        console.log("🔗 Conectando a Supabase:", SUPABASE_URL);
     </script>
 </body>
 </html>

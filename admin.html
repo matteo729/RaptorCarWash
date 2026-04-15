@@ -3,44 +3,106 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Raptor Car Wash - Empleado</title>
+    <title>Raptor Car Wash - Administrador</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
             background: #0a0a0a;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             color: #e0e0e0;
-            padding: 16px;
             min-height: 100vh;
         }
 
-        .container {
-            max-width: 500px;
-            margin: 0 auto;
+        /* Mobile First Layout */
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
         }
 
-        h1 {
-            font-size: 1.8rem;
+        /* Header */
+        .header {
+            background: #0f0f0f;
+            padding: 16px;
+            border-bottom: 1px solid #2c2c2c;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
             color: #dc2626;
             margin-bottom: 4px;
         }
 
-        .subtitle {
+        .header p {
+            font-size: 0.75rem;
             color: #6b7280;
-            font-size: 0.8rem;
-            margin-bottom: 24px;
         }
 
+        /* Navigation - Mobile Bottom Bar */
+        .nav-bottom {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #0f0f0f;
+            border-top: 1px solid #2c2c2c;
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 0;
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #6b7280;
+            font-size: 0.7rem;
+            flex: 1;
+            text-align: center;
+        }
+
+        .nav-item:hover {
+            background: #1a1a1a;
+        }
+
+        .nav-item.active {
+            color: #dc2626;
+            background: #1a1a1a;
+        }
+
+        .nav-icon {
+            font-size: 1.3rem;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 16px;
+            padding-bottom: 80px;
+            flex: 1;
+        }
+
+        /* Cards */
         .card {
             background: #1a1a1a;
             border-radius: 16px;
-            padding: 20px;
+            padding: 16px;
             margin-bottom: 16px;
             border: 1px solid #2c2c2c;
         }
@@ -48,10 +110,46 @@
         .card-title {
             font-size: 1.1rem;
             font-weight: 600;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
             color: #eab308;
         }
 
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .stat-card {
+            background: #1a1a1a;
+            padding: 16px;
+            border-radius: 16px;
+            border: 1px solid #2c2c2c;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            color: #6b7280;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .positive {
+            color: #4ade80;
+        }
+
+        .negative {
+            color: #ef4444;
+        }
+
+        /* Forms */
         input, select, textarea {
             width: 100%;
             padding: 12px;
@@ -61,6 +159,7 @@
             border-radius: 12px;
             color: white;
             font-size: 0.9rem;
+            font-family: inherit;
         }
 
         input:focus, select:focus, textarea:focus {
@@ -79,6 +178,8 @@
             width: 100%;
             cursor: pointer;
             transition: all 0.2s;
+            font-family: inherit;
+            margin-bottom: 8px;
         }
 
         button:active {
@@ -93,325 +194,1004 @@
             background: #16a34a;
         }
 
-        .btn-logout {
-            background: #3f3f46;
+        .btn-warning {
+            background: #eab308;
+            color: #0a0a0a;
+        }
+
+        .btn-small {
             width: auto;
-            padding: 8px 16px;
+            padding: 6px 12px;
+            font-size: 0.75rem;
+            margin: 0;
         }
 
-        .header-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            gap: 10px;
+        /* Tables - Mobile friendly */
+        .table-container {
+            overflow-x: auto;
         }
 
-        .preview-box {
-            background: #2a2a2a;
-            padding: 12px;
-            border-radius: 12px;
-            margin: 10px 0;
-            text-align: center;
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
         }
 
-        .precio-final {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: #4ade80;
-        }
-
-        .comision {
-            font-size: 1rem;
-            color: #eab308;
-        }
-
-        .lavado-item {
-            background: #2a2a2a;
-            padding: 12px;
-            border-radius: 12px;
-            margin-bottom: 10px;
-            border-left: 3px solid #dc2626;
-        }
-
-        .badge {
-            display: inline-block;
-            background: #3f3f3f;
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 0.7rem;
-            margin-top: 6px;
-            margin-right: 6px;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            margin-top: 12px;
-        }
-
-        .stat-card {
-            background: #2a2a2a;
-            padding: 12px;
-            border-radius: 12px;
-            text-align: center;
-        }
-
-        .stat-label {
-            font-size: 0.7rem;
+        th {
+            text-align: left;
+            padding: 10px 8px;
             color: #6b7280;
+            font-weight: 500;
+            border-bottom: 1px solid #2c2c2c;
         }
 
-        .stat-value {
-            font-size: 1.2rem;
-            font-weight: bold;
-            margin-top: 4px;
+        td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #2c2c2c;
         }
 
-        .hidden {
+        /* Filters */
+        .filters {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .filters-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .filters-row input, .filters-row select {
+            flex: 1;
+            margin-bottom: 0;
+            padding: 10px;
+        }
+
+        /* Hide/Show panels */
+        .panel {
             display: none;
+        }
+
+        .panel.active {
+            display: block;
+        }
+
+        /* Login Section */
+        .login-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
         }
 
         .login-box {
             background: #1a1a1a;
             border-radius: 24px;
             padding: 32px 24px;
-            margin-top: 50px;
+            width: 100%;
+            max-width: 400px;
+            border: 1px solid #2c2c2c;
         }
 
         .login-box h2 {
-            text-align: center;
+            font-size: 1.5rem;
             margin-bottom: 24px;
+            text-align: center;
             color: #dc2626;
+        }
+
+        /* Chart */
+        canvas {
+            max-height: 250px;
+            width: 100% !important;
+        }
+
+        /* Recent activity */
+        .recent-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #2c2c2c;
+        }
+
+        .recent-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .recent-icon {
+            width: 36px;
+            height: 36px;
+            background: #2a2a2a;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+
+        /* Desktop adjustments */
+        @media (min-width: 768px) {
+            .main-content {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 24px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+            
+            .filters {
+                flex-direction: row;
+                flex-wrap: wrap;
+                align-items: center;
+            }
+            
+            .filters-row {
+                flex: 1;
+            }
+            
+            .nav-bottom {
+                display: none;
+            }
+            
+            /* Desktop sidebar */
+            .desktop-sidebar {
+                display: flex;
+            }
+            
+            .app-container {
+                flex-direction: row;
+            }
+            
+            .sidebar-desktop {
+                width: 260px;
+                background: #0f0f0f;
+                border-right: 1px solid #2c2c2c;
+                min-height: 100vh;
+                position: sticky;
+                top: 0;
+            }
+            
+            .main-content-desktop {
+                flex: 1;
+            }
+            
+            .nav-desktop {
+                display: flex;
+                flex-direction: column;
+                padding: 16px;
+            }
+            
+            .nav-desktop .nav-item {
+                flex-direction: row;
+                justify-content: flex-start;
+                gap: 12px;
+                margin-bottom: 4px;
+            }
+        }
+
+        @media (max-width: 767px) {
+            .sidebar-desktop {
+                display: none;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .nav-bottom {
+                display: none;
+            }
+        }
+
+        .badge {
+            background: #2a2a2a;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .icon-btn {
+            background: none;
+            width: auto;
+            padding: 4px 8px;
+            margin: 0;
+            color: #dc2626;
+        }
+
+        .icon-btn:hover {
+            background: #2a2a2a;
+            transform: none;
+        }
+
+        .hidden {
+            display: none;
         }
     </style>
 </head>
 <body>
-<div class="container">
-    <div id="loginSection">
+    <div id="loginContainer" class="login-container">
         <div class="login-box">
             <h2>Raptor Car Wash</h2>
-            <p style="text-align: center; margin-bottom: 24px; color: #6b7280;">Acceso Empleados</p>
+            <p style="text-align: center; margin-bottom: 24px; color: #6b7280;">Acceso Administrador</p>
             <input type="email" id="loginEmail" placeholder="Correo electrónico">
             <input type="password" id="loginPassword" placeholder="Contraseña">
             <button id="loginBtn" class="btn-primary">Iniciar Sesión</button>
         </div>
     </div>
 
-    <div id="appSection" class="hidden">
-        <div class="header-bar">
-            <div>
-                <h1>Raptor Car Wash</h1>
-                <p class="subtitle">Bienvenido, <strong id="empleadoNombre"></strong></p>
+    <div id="appContainer" class="app-container" style="display: none;">
+        <!-- Desktop Sidebar -->
+        <div class="sidebar-desktop">
+            <div style="padding: 20px; border-bottom: 1px solid #2c2c2c;">
+                <h2 style="color: #dc2626; font-size: 1.3rem;">Raptor Car Wash</h2>
+                <p style="font-size: 0.7rem; color: #6b7280;">Administración</p>
             </div>
-            <button id="logoutBtn" class="btn-logout">Salir</button>
-        </div>
-
-        <div class="card">
-            <div class="card-title">Registrar Lavado</div>
-            <select id="tipoLavado"></select>
-            <input type="text" id="matricula" placeholder="Matrícula del vehículo">
-            <textarea id="observaciones" placeholder="Observaciones (opcional)" rows="3"></textarea>
-            <div class="preview-box">
-                <div>Precio final: <span class="precio-final" id="precioFinalMostrado">0</span></div>
-                <div>Tu comisión: <span class="comision" id="comisionMostrada">0</span></div>
-            </div>
-            <button id="registrarBtn" class="btn-success">Registrar Lavado</button>
-        </div>
-
-        <div class="card">
-            <div class="card-title">Mis Estadísticas</div>
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-label">Recaudado</div>
-                    <div class="stat-value" id="miTotalRecaudado">$0</div>
+            <div class="nav-desktop">
+                <div class="nav-item active" data-nav="dashboard">
+                    <span class="nav-icon">📊</span>
+                    <span>Dashboard</span>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-label">Comisiones</div>
-                    <div class="stat-value" id="misComisiones">$0</div>
+                <div class="nav-item" data-nav="employees">
+                    <span class="nav-icon">👥</span>
+                    <span>Empleados</span>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-label">Lavados</div>
-                    <div class="stat-value" id="misLavados">0</div>
+                <div class="nav-item" data-nav="services">
+                    <span class="nav-icon">🧼</span>
+                    <span>Servicios</span>
+                </div>
+                <div class="nav-item" data-nav="expenses">
+                    <span class="nav-icon">💰</span>
+                    <span>Gastos</span>
+                </div>
+                <div class="nav-item" data-nav="reports">
+                    <span class="nav-icon">📈</span>
+                    <span>Reportes</span>
+                </div>
+                <div class="nav-item" id="logoutDesktopBtn">
+                    <span class="nav-icon">🚪</span>
+                    <span>Cerrar Sesión</span>
                 </div>
             </div>
         </div>
 
-        <div class="card">
-            <div class="card-title">Mis Últimos Lavados</div>
-            <div id="historialLavados"></div>
+        <!-- Main Content -->
+        <div class="main-content-desktop">
+            <div class="header">
+                <h1 id="pageTitle">Dashboard</h1>
+                <p>Panel de control principal</p>
+            </div>
+
+            <div class="main-content">
+                <!-- Panel Dashboard -->
+                <div id="dashboardPanel" class="panel active">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-label">Ingresos Totales</div>
+                            <div class="stat-value positive" id="totalIngresos">$0</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Gastos Totales</div>
+                            <div class="stat-value negative" id="totalGastos">$0</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Ganancia Neta</div>
+                            <div class="stat-value" id="gananciaNeta">$0</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Total Lavados</div>
+                            <div class="stat-value" id="totalLavados">0</div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title">Ganancias por Empleado</div>
+                        <canvas id="gananciasChart"></canvas>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title">Actividad Reciente</div>
+                        <div id="recentActivity"></div>
+                    </div>
+                </div>
+
+                <!-- Panel Empleados -->
+                <div id="employeesPanel" class="panel">
+                    <div class="card">
+                        <div class="card-title">Agregar Empleado</div>
+                        <input type="text" id="empNombre" placeholder="Nombre completo">
+                        <input type="email" id="empEmail" placeholder="Correo electrónico">
+                        <input type="password" id="empPassword" placeholder="Contraseña temporal">
+                        <button id="crearEmpleadoBtn" class="btn-success">Agregar Empleado</button>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title">Lista de Empleados</div>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Nombre</th>
+                                        <th>Email</th>
+                                        <th>Lavados</th>
+                                        <th>Comisión</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="empleadosList"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Panel Servicios -->
+                <div id="servicesPanel" class="panel">
+                    <div class="card">
+                        <div class="card-title">Agregar Servicio</div>
+                        <input type="text" id="tipoNombre" placeholder="Nombre del servicio">
+                        <select id="tipoVehiculo">
+                            <option value="Auto">Auto</option>
+                            <option value="Moto">Moto</option>
+                        </select>
+                        <input type="number" id="tipoPrecio" placeholder="Precio total" step="0.01">
+                        <input type="number" id="tipoComision" placeholder="Comisión del empleado" step="0.01">
+                        <button id="crearTipoBtn" class="btn-primary">Agregar Servicio</button>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title">Lista de Servicios</div>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Nombre</th>
+                                        <th>Tipo</th>
+                                        <th>Precio</th>
+                                        <th>Comisión</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tiposList"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Panel Gastos -->
+                <div id="expensesPanel" class="panel">
+                    <div class="card">
+                        <div class="card-title">Registrar Gasto</div>
+                        <input type="text" id="gastoConcepto" placeholder="Concepto">
+                        <select id="gastoCategoria">
+                            <option value="Agua">Agua</option>
+                            <option value="Electricidad">Electricidad</option>
+                            <option value="Productos">Productos</option>
+                            <option value="Mantenimiento">Mantenimiento</option>
+                            <option value="Sueldos">Sueldos</option>
+                            <option value="Otros">Otros</option>
+                        </select>
+                        <input type="number" id="gastoMonto" placeholder="Monto" step="0.01">
+                        <input type="date" id="gastoFecha">
+                        <button id="registrarGastoBtn" class="btn-warning">Registrar Gasto</button>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title">Filtros</div>
+                        <div class="filters">
+                            <div class="filters-row">
+                                <input type="date" id="filtroFechaInicio" placeholder="Fecha inicio">
+                                <input type="date" id="filtroFechaFin" placeholder="Fecha fin">
+                            </div>
+                            <div class="filters-row">
+                                <select id="filtroCategoria">
+                                    <option value="">Todas las categorías</option>
+                                    <option value="Agua">Agua</option>
+                                    <option value="Electricidad">Electricidad</option>
+                                    <option value="Productos">Productos</option>
+                                    <option value="Mantenimiento">Mantenimiento</option>
+                                    <option value="Sueldos">Sueldos</option>
+                                    <option value="Otros">Otros</option>
+                                </select>
+                                <button id="filtrarGastosBtn" class="btn-small">Filtrar</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title">Historial de Gastos</div>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Concepto</th>
+                                        <th>Categoría</th>
+                                        <th>Monto</th>
+                                        <th>Fecha</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="gastosList"></tbody>
+                            </table>
+                        </div>
+                        <div id="totalGastosFiltrados" style="margin-top: 16px; text-align: right; font-weight: bold;"></div>
+                    </div>
+                </div>
+
+                <!-- Panel Reportes -->
+                <div id="reportsPanel" class="panel">
+                    <div class="card">
+                        <div class="card-title">Rendimiento por Empleado</div>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Empleado</th>
+                                        <th>Recaudado</th>
+                                        <th>Comisiones</th>
+                                        <th>Ganancia Local</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="reporteEmpleados"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title">Estadísticas Mensuales</div>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Mes</th>
+                                        <th>Lavados</th>
+                                        <th>Ingresos</th>
+                                        <th>Gastos</th>
+                                        <th>Ganancia Neta</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="estadisticasMensuales"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Bottom Navigation -->
+        <div class="nav-bottom">
+            <div class="nav-item active" data-nav="dashboard">
+                <span class="nav-icon">📊</span>
+                <span>Dashboard</span>
+            </div>
+            <div class="nav-item" data-nav="employees">
+                <span class="nav-icon">👥</span>
+                <span>Empleados</span>
+            </div>
+            <div class="nav-item" data-nav="services">
+                <span class="nav-icon">🧼</span>
+                <span>Servicios</span>
+            </div>
+            <div class="nav-item" data-nav="expenses">
+                <span class="nav-icon">💰</span>
+                <span>Gastos</span>
+            </div>
+            <div class="nav-item" data-nav="reports">
+                <span class="nav-icon">📈</span>
+                <span>Reportes</span>
+            </div>
+            <div class="nav-item" id="logoutMobileBtn">
+                <span class="nav-icon">🚪</span>
+                <span>Salir</span>
+            </div>
         </div>
     </div>
-</div>
 
-<script>
-    const SUPABASE_URL = 'https://TU_PROYECTO.supabase.co';
-    const SUPABASE_ANON_KEY = 'TU_ANON_KEY';
-    
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    
-    let currentUser = null;
-    let tiposLavado = [];
+    <script>
+        // Configuración de Supabase - CAMBIAR ESTOS VALORES
+        const SUPABASE_URL = 'https://TU_PROYECTO.supabase.co';
+        const SUPABASE_ANON_KEY = 'TU_ANON_KEY';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        let currentUser = null;
+        let gananciasChart = null;
+        let tiposLavadoCache = [];
 
-    async function checkSession() {
-        const { data: { user } } = await supabase.auth.getUser();
-        return user;
-    }
+        // ==================== AUTENTICACIÓN ====================
+        async function checkSession() {
+            const { data: { user } } = await supabase.auth.getUser();
+            return user;
+        }
 
-    async function login(email, password) {
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-        return data;
-    }
+        async function login(email, password) {
+            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+            if (error) throw error;
+            return data;
+        }
 
-    async function logout() {
-        await supabase.auth.signOut();
-        location.reload();
-    }
+        async function logout() {
+            await supabase.auth.signOut();
+            location.reload();
+        }
 
-    async function loadTipos() {
-        const { data } = await supabase.from('tipos_lavado').select('*');
-        tiposLavado = data || [];
-        const select = document.getElementById('tipoLavado');
-        select.innerHTML = '';
-        tiposLavado.forEach(t => {
-            const option = document.createElement('option');
-            option.value = t.id;
-            option.textContent = `${t.nombre} (${t.tipo_vehiculo}) - $${t.precio_total}`;
-            option.dataset.precio = t.precio_total;
-            option.dataset.comision = t.comision_empleado;
-            select.appendChild(option);
+        async function isAdmin(userId) {
+            const { data } = await supabase.from('perfiles').select('rol').eq('id', userId).single();
+            return data?.rol === 'admin';
+        }
+
+        // ==================== DASHBOARD ====================
+        async function loadEstadisticasGenerales() {
+            const { data: lavados } = await supabase.from('lavados').select('precio_final, comision_ganada');
+            const { data: gastos } = await supabase.from('gastos').select('monto');
+            
+            const ingresos = lavados?.reduce((s, l) => s + l.precio_final, 0) || 0;
+            const comisiones = lavados?.reduce((s, l) => s + l.comision_ganada, 0) || 0;
+            const gastosTotal = gastos?.reduce((s, g) => s + g.monto, 0) || 0;
+            const ganancia = ingresos - comisiones - gastosTotal;
+            const totalLavados = lavados?.length || 0;
+            
+            const ingresosEl = document.getElementById('totalIngresos');
+            const gastosEl = document.getElementById('totalGastos');
+            const gananciaEl = document.getElementById('gananciaNeta');
+            const lavadosEl = document.getElementById('totalLavados');
+            
+            if (ingresosEl) ingresosEl.innerText = `$${ingresos.toFixed(2)}`;
+            if (gastosEl) gastosEl.innerText = `$${gastosTotal.toFixed(2)}`;
+            if (lavadosEl) lavadosEl.innerText = totalLavados;
+            if (gananciaEl) {
+                gananciaEl.innerText = `$${ganancia.toFixed(2)}`;
+                gananciaEl.className = `stat-value ${ganancia >= 0 ? 'positive' : 'negative'}`;
+            }
+        }
+
+        async function loadGraficoGanancias() {
+            const { data: empleados } = await supabase.from('perfiles').select('id, nombre').eq('rol', 'empleado');
+            const labels = [];
+            const dataGanancias = [];
+            
+            for (let emp of empleados) {
+                const { data: lavados } = await supabase.from('lavados')
+                    .select('precio_final')
+                    .eq('empleado_id', emp.id);
+                const total = lavados?.reduce((s, l) => s + l.precio_final, 0) || 0;
+                labels.push(emp.nombre.split(' ')[0]);
+                dataGanancias.push(total);
+            }
+            
+            const ctx = document.getElementById('gananciasChart')?.getContext('2d');
+            if (!ctx) return;
+            
+            if (gananciasChart) gananciasChart.destroy();
+            
+            gananciasChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Ganancias por empleado ($)',
+                        data: dataGanancias,
+                        backgroundColor: '#dc2626',
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { labels: { color: '#e0e0e0' } }
+                    },
+                    scales: {
+                        y: { ticks: { color: '#e0e0e0' }, grid: { color: '#3f3f3f' } },
+                        x: { ticks: { color: '#e0e0e0' }, grid: { color: '#3f3f3f' } }
+                    }
+                }
+            });
+        }
+
+        async function loadRecentActivity() {
+            const { data } = await supabase
+                .from('lavados')
+                .select('*, perfiles(nombre), tipos_lavado(nombre)')
+                .order('created_at', { ascending: false })
+                .limit(5);
+            
+            const container = document.getElementById('recentActivity');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            if (!data || data.length === 0) {
+                container.innerHTML = '<div style="text-align: center; color: #6b7280; padding: 20px;">No hay actividad reciente</div>';
+                return;
+            }
+            
+            data.forEach(l => {
+                container.innerHTML += `
+                    <div class="recent-item">
+                        <div class="recent-info">
+                            <div class="recent-icon">🚗</div>
+                            <div>
+                                <div><strong>${l.perfiles?.nombre || 'Empleado'}</strong> - ${l.tipos_lavado?.nombre || 'Lavado'}</div>
+                                <div style="font-size: 0.7rem; color: #6b7280;">${l.matricula} • ${new Date(l.created_at).toLocaleString()}</div>
+                            </div>
+                        </div>
+                        <div style="font-weight: bold; color: #4ade80;">$${l.precio_final}</div>
+                    </div>
+                `;
+            });
+        }
+
+        // ==================== EMPLEADOS ====================
+        async function loadEmpleados() {
+            const { data } = await supabase.from('perfiles').select('*').eq('rol', 'empleado');
+            const container = document.getElementById('empleadosList');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            if (!data || data.length === 0) {
+                container.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px;">No hay empleados registrados</td></tr>';
+                return;
+            }
+            
+            for (let emp of data) {
+                const { count } = await supabase
+                    .from('lavados')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('empleado_id', emp.id);
+                
+                const { data: lavados } = await supabase
+                    .from('lavados')
+                    .select('comision_ganada')
+                    .eq('empleado_id', emp.id);
+                const totalComision = lavados?.reduce((s, l) => s + l.comision_ganada, 0) || 0;
+                
+                container.innerHTML += `
+                    <tr>
+                        <td><strong>${emp.nombre}</strong></td>
+                        <td style="font-size: 0.75rem;">${emp.email}</td>
+                        <td>${count || 0}</td>
+                        <td>$${totalComision.toFixed(2)}</td>
+                        <td><button class="icon-btn" onclick="eliminarEmpleado('${emp.id}')">Eliminar</button></td>
+                    </tr>
+                `;
+            }
+        }
+
+        window.eliminarEmpleado = async (id) => {
+            if (confirm('¿Eliminar este empleado? Se eliminarán todos sus lavados.')) {
+                await supabase.from('perfiles').delete().eq('id', id);
+                await loadEmpleados();
+                await loadReporteEmpleados();
+                await loadEstadisticasGenerales();
+                await loadGraficoGanancias();
+            }
+        };
+
+        async function crearEmpleado(nombre, email, password) {
+            const { data: { user }, error } = await supabase.auth.signUp({ email, password });
+            if (error) throw error;
+            await supabase.from('perfiles').insert([{ id: user.id, nombre, email, rol: 'empleado' }]);
+        }
+
+        // ==================== SERVICIOS ====================
+        async function loadTipos() {
+            const { data } = await supabase.from('tipos_lavado').select('*').order('id');
+            tiposLavadoCache = data || [];
+            const container = document.getElementById('tiposList');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            if (!data || data.length === 0) {
+                container.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px;">No hay servicios registrados</td></tr>';
+                return;
+            }
+            
+            data.forEach(t => {
+                container.innerHTML += `
+                    <tr>
+                        <td><strong>${t.nombre}</strong></td>
+                        <td>${t.tipo_vehiculo === 'Auto' ? 'Auto' : 'Moto'}</td>
+                        <td>$${t.precio_total}</td>
+                        <td>$${t.comision_empleado}</td>
+                        <td><button class="icon-btn" onclick="eliminarTipo(${t.id})">Eliminar</button></td>
+                    </tr>
+                `;
+            });
+        }
+
+        window.eliminarTipo = async (id) => {
+            if (confirm('¿Eliminar este tipo de lavado?')) {
+                await supabase.from('tipos_lavado').delete().eq('id', id);
+                await loadTipos();
+            }
+        };
+
+        async function crearTipoLavado(nombre, tipo_vehiculo, precio_total, comision_empleado) {
+            await supabase.from('tipos_lavado').insert([{ nombre, tipo_vehiculo, precio_total, comision_empleado }]);
+        }
+
+        // ==================== GASTOS ====================
+        async function loadGastos(filtros = {}) {
+            let query = supabase.from('gastos').select('*').order('fecha', { ascending: false });
+            if (filtros.fechaInicio) query = query.gte('fecha', filtros.fechaInicio);
+            if (filtros.fechaFin) query = query.lte('fecha', filtros.fechaFin);
+            if (filtros.categoria && filtros.categoria !== '') query = query.eq('categoria', filtros.categoria);
+            
+            const { data } = await query;
+            const container = document.getElementById('gastosList');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            let total = 0;
+            
+            if (!data || data.length === 0) {
+                container.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px;">No hay gastos registrados</td></tr>';
+            } else {
+                data.forEach(g => {
+                    total += g.monto;
+                    container.innerHTML += `
+                        <tr>
+                            <td><strong>${g.concepto}</strong></td>
+                            <td><span class="badge">${g.categoria}</span></td>
+                            <td style="color: #ef4444;">-$${g.monto.toFixed(2)}</td>
+                            <td>${new Date(g.fecha).toLocaleDateString()}</td>
+                            <td><button class="icon-btn" onclick="eliminarGasto(${g.id})">Eliminar</button></td>
+                        </tr>
+                    `;
+                });
+            }
+            
+            const totalContainer = document.getElementById('totalGastosFiltrados');
+            if (totalContainer) totalContainer.innerHTML = `Total Gastos: $${total.toFixed(2)}`;
+        }
+
+        window.eliminarGasto = async (id) => {
+            if (confirm('¿Eliminar este gasto?')) {
+                await supabase.from('gastos').delete().eq('id', id);
+                await aplicarFiltrosGastos();
+                await loadEstadisticasGenerales();
+            }
+        };
+
+        async function crearGasto(concepto, categoria, monto, fecha) {
+            await supabase.from('gastos').insert([{ concepto, categoria, monto, fecha }]);
+        }
+
+        async function aplicarFiltrosGastos() {
+            const filtros = {
+                fechaInicio: document.getElementById('filtroFechaInicio')?.value,
+                fechaFin: document.getElementById('filtroFechaFin')?.value,
+                categoria: document.getElementById('filtroCategoria')?.value
+            };
+            await loadGastos(filtros);
+        }
+
+        // ==================== REPORTES ====================
+        async function loadReporteEmpleados() {
+            const { data: empleados } = await supabase.from('perfiles').select('id, nombre').eq('rol', 'empleado');
+            const container = document.getElementById('reporteEmpleados');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            if (!empleados || empleados.length === 0) {
+                container.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px;">No hay empleados registrados</td></tr>';
+                return;
+            }
+            
+            for (let emp of empleados) {
+                const { data: lavados } = await supabase.from('lavados')
+                    .select('precio_final, comision_ganada')
+                    .eq('empleado_id', emp.id);
+                const totalRecaudado = lavados?.reduce((s, l) => s + l.precio_final, 0) || 0;
+                const totalComisiones = lavados?.reduce((s, l) => s + l.comision_ganada, 0) || 0;
+                const ganancia = totalRecaudado - totalComisiones;
+                
+                container.innerHTML += `
+                    <tr>
+                        <td><strong>${emp.nombre}</strong></td>
+                        <td>$${totalRecaudado.toFixed(2)}</td>
+                        <td>$${totalComisiones.toFixed(2)}</td>
+                        <td style="color: #4ade80;">+$${ganancia.toFixed(2)}</td>
+                    </tr>
+                `;
+            }
+        }
+
+        async function loadEstadisticasMensuales() {
+            const { data } = await supabase.from('estadisticas_mensuales').select('*').limit(6);
+            const container = document.getElementById('estadisticasMensuales');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            if (!data || data.length === 0) {
+                container.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px;">No hay datos disponibles</td></tr>';
+                return;
+            }
+            
+            data.forEach(est => {
+                const mes = new Date(est.mes).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+                container.innerHTML += `
+                    <tr>
+                        <td>${mes}</td>
+                        <td>${est.total_lavados || 0}</td>
+                        <td>$${(est.ingresos_brutos || 0).toFixed(2)}</td>
+                        <td>$${(est.total_gastos || 0).toFixed(2)}</td>
+                        <td style="color: ${(est.ganancia_neta || 0) >= 0 ? '#4ade80' : '#ef4444'}">$${(est.ganancia_neta || 0).toFixed(2)}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        // ==================== NAVEGACIÓN ====================
+        function switchPanel(panelId) {
+            document.querySelectorAll('.panel').forEach(panel => {
+                panel.classList.remove('active');
+            });
+            document.getElementById(`${panelId}Panel`).classList.add('active');
+            
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            document.querySelectorAll(`.nav-item[data-nav="${panelId}"]`).forEach(item => {
+                item.classList.add('active');
+            });
+            
+            const titles = {
+                dashboard: 'Dashboard',
+                employees: 'Gestión de Empleados',
+                services: 'Gestión de Servicios',
+                expenses: 'Gestión de Gastos',
+                reports: 'Reportes y Estadísticas'
+            };
+            
+            const titleEl = document.getElementById('pageTitle');
+            if (titleEl) titleEl.innerText = titles[panelId] || 'Dashboard';
+            
+            // Cargar datos según el panel
+            if (panelId === 'dashboard') {
+                loadEstadisticasGenerales();
+                loadGraficoGanancias();
+                loadRecentActivity();
+            } else if (panelId === 'employees') {
+                loadEmpleados();
+            } else if (panelId === 'services') {
+                loadTipos();
+            } else if (panelId === 'expenses') {
+                aplicarFiltrosGastos();
+            } else if (panelId === 'reports') {
+                loadReporteEmpleados();
+                loadEstadisticasMensuales();
+            }
+        }
+
+        // ==================== INICIALIZACIÓN ====================
+        async function initApp() {
+            const user = await checkSession();
+            if (!user) return;
+            
+            const admin = await isAdmin(user.id);
+            if (!admin) {
+                await logout();
+                alert('Acceso denegado. Se requieren permisos de administrador.');
+                return;
+            }
+            
+            currentUser = user;
+            document.getElementById('loginContainer').style.display = 'none';
+            document.getElementById('appContainer').style.display = 'flex';
+            
+            // Configurar navegación
+            document.querySelectorAll('.nav-item[data-nav]').forEach(item => {
+                item.addEventListener('click', () => {
+                    switchPanel(item.dataset.nav);
+                });
+            });
+            
+            document.getElementById('logoutDesktopBtn')?.addEventListener('click', logout);
+            document.getElementById('logoutMobileBtn')?.addEventListener('click', logout);
+            
+            // Cargar dashboard inicial
+            await loadEstadisticasGenerales();
+            await loadGraficoGanancias();
+            await loadRecentActivity();
+        }
+
+        // Eventos de login
+        document.getElementById('loginBtn').onclick = async () => {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            try {
+                const data = await login(email, password);
+                const admin = await isAdmin(data.user.id);
+                if (!admin) {
+                    await logout();
+                    alert('Acceso denegado. No tienes permisos de administrador.');
+                    return;
+                }
+                await initApp();
+            } catch (error) {
+                alert('Error de inicio de sesión: ' + error.message);
+            }
+        };
+
+        // Eventos de formularios
+        document.getElementById('crearEmpleadoBtn')?.addEventListener('click', async () => {
+            const nombre = document.getElementById('empNombre').value;
+            const email = document.getElementById('empEmail').value;
+            const password = document.getElementById('empPassword').value;
+            if (!nombre || !email || !password) {
+                alert('Completa todos los campos');
+                return;
+            }
+            
+            try {
+                await crearEmpleado(nombre, email, password);
+                alert('Empleado creado exitosamente');
+                document.getElementById('empNombre').value = '';
+                document.getElementById('empEmail').value = '';
+                document.getElementById('empPassword').value = '';
+                await loadEmpleados();
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
         });
-        actualizarPrecioYComision();
-    }
-
-    function actualizarPrecioYComision() {
-        const select = document.getElementById('tipoLavado');
-        const opt = select.options[select.selectedIndex];
-        if (opt) {
-            document.getElementById('precioFinalMostrado').innerText = opt.dataset.precio;
-            document.getElementById('comisionMostrada').innerText = opt.dataset.comision;
-        }
-    }
-
-    async function loadHistorial() {
-        if (!currentUser) return;
-        const { data } = await supabase.from('lavados')
-            .select(`id, matricula, observaciones, precio_final, comision_ganada, created_at, tipos_lavado(nombre)`)
-            .eq('empleado_id', currentUser.id)
-            .order('created_at', { ascending: false });
         
-        const container = document.getElementById('historialLavados');
-        container.innerHTML = '';
-        if (!data || data.length === 0) {
-            container.innerHTML = '<div style="text-align: center; padding: 20px; color: #6b7280;">No hay lavados registrados</div>';
-            return;
-        }
-        
-        data.forEach(l => {
-            container.innerHTML += `
-                <div class="lavado-item">
-                    <div><strong>${l.tipos_lavado.nombre}</strong> - $${l.precio_final}</div>
-                    <div class="badge">${l.matricula}</div>
-                    <div class="badge">Comisión: $${l.comision_ganada}</div>
-                    <div class="badge">${new Date(l.created_at).toLocaleString()}</div>
-                    ${l.observaciones ? `<div class="badge">${l.observaciones}</div>` : ''}
-                </div>
-            `;
+        document.getElementById('crearTipoBtn')?.addEventListener('click', async () => {
+            const nombre = document.getElementById('tipoNombre').value;
+            const tipo_vehiculo = document.getElementById('tipoVehiculo').value;
+            const precio_total = parseFloat(document.getElementById('tipoPrecio').value);
+            const comision_empleado = parseFloat(document.getElementById('tipoComision').value);
+            if (!nombre || !precio_total || !comision_empleado) {
+                alert('Completa todos los campos');
+                return;
+            }
+            
+            await crearTipoLavado(nombre, tipo_vehiculo, precio_total, comision_empleado);
+            alert('Servicio agregado');
+            document.getElementById('tipoNombre').value = '';
+            document.getElementById('tipoPrecio').value = '';
+            document.getElementById('tipoComision').value = '';
+            await loadTipos();
         });
-    }
-
-    async function loadMisEstadisticas() {
-        if (!currentUser) return;
-        const { data: lavados } = await supabase.from('lavados')
-            .select('precio_final, comision_ganada')
-            .eq('empleado_id', currentUser.id);
         
-        const total = lavados?.reduce((s, l) => s + l.precio_final, 0) || 0;
-        const comisiones = lavados?.reduce((s, l) => s + l.comision_ganada, 0) || 0;
-        const cantidad = lavados?.length || 0;
+        document.getElementById('registrarGastoBtn')?.addEventListener('click', async () => {
+            const concepto = document.getElementById('gastoConcepto').value;
+            const categoria = document.getElementById('gastoCategoria').value;
+            const monto = parseFloat(document.getElementById('gastoMonto').value);
+            const fecha = document.getElementById('gastoFecha').value || new Date().toISOString().split('T')[0];
+            
+            if (!concepto || !monto) {
+                alert('Completa concepto y monto');
+                return;
+            }
+            
+            await crearGasto(concepto, categoria, monto, fecha);
+            alert('Gasto registrado');
+            document.getElementById('gastoConcepto').value = '';
+            document.getElementById('gastoMonto').value = '';
+            await aplicarFiltrosGastos();
+            await loadEstadisticasGenerales();
+        });
         
-        document.getElementById('miTotalRecaudado').innerText = `$${total.toFixed(2)}`;
-        document.getElementById('misComisiones').innerText = `$${comisiones.toFixed(2)}`;
-        document.getElementById('misLavados').innerText = cantidad;
-    }
-
-    async function registrarLavado() {
-        const tipoId = parseInt(document.getElementById('tipoLavado').value);
-        const matricula = document.getElementById('matricula').value.trim();
-        const observaciones = document.getElementById('observaciones').value;
+        document.getElementById('filtrarGastosBtn')?.addEventListener('click', aplicarFiltrosGastos);
         
-        if (!matricula) {
-            alert('La matrícula es obligatoria');
-            return;
-        }
-        
-        const tipo = tiposLavado.find(t => t.id === tipoId);
-        if (!tipo) return;
-        
-        const { error } = await supabase.from('lavados').insert([{
-            empleado_id: currentUser.id,
-            tipo_lavado_id: tipoId,
-            matricula,
-            observaciones,
-            precio_final: tipo.precio_total,
-            comision_ganada: tipo.comision_empleado
-        }]);
-        
-        if (error) {
-            alert('Error: ' + error.message);
-            return;
-        }
-        
-        alert('Lavado registrado exitosamente');
-        document.getElementById('matricula').value = '';
-        document.getElementById('observaciones').value = '';
-        await loadHistorial();
-        await loadMisEstadisticas();
-    }
-
-    async function initApp() {
-        const user = await checkSession();
-        if (!user) return;
-        
-        const { data: perfil } = await supabase.from('perfiles').select('*').eq('id', user.id).single();
-        if (!perfil || perfil.rol !== 'empleado') {
-            await logout();
-            alert('Acceso solo para empleados');
-            return;
-        }
-        
-        currentUser = { id: perfil.id, nombre: perfil.nombre };
-        document.getElementById('empleadoNombre').innerText = perfil.nombre;
-        document.getElementById('loginSection').classList.add('hidden');
-        document.getElementById('appSection').classList.remove('hidden');
-        
-        await loadTipos();
-        await loadHistorial();
-        await loadMisEstadisticas();
-        
-        document.getElementById('tipoLavado').onchange = actualizarPrecioYComision;
-        document.getElementById('registrarBtn').onclick = registrarLavado;
-        document.getElementById('logoutBtn').onclick = logout;
-    }
-
-    document.getElementById('loginBtn').onclick = async () => {
-        const email = document.getElementById('loginEmail').value;
-        const password = document.getElementById('loginPassword').value;
-        
-        try {
-            await login(email, password);
-            await initApp();
-        } catch (error) {
-            alert('Error de inicio de sesión: ' + error.message);
-        }
-    };
-    
-    checkSession().then(user => {
-        if (user) initApp();
-    });
-</script>
+        // Verificar sesión al cargar
+        checkSession().then(user => {
+            if (user) {
+                initApp();
+            }
+        });
+    </script>
 </body>
 </html>

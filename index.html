@@ -100,7 +100,7 @@
             margin-top: 5px;
         }
         
-        #userInfo {
+        #userInfoAdmin, #userInfoEmpleado {
             font-size: 11px;
             margin-top: 10px;
             opacity: 0.8;
@@ -268,19 +268,10 @@
             margin-bottom: 10px;
         }
         
-        .success-msg {
-            background: #d4edda;
-            color: #155724;
-            padding: 10px;
-            border-radius: 4px;
-            margin-bottom: 10px;
-        }
-        
         .hidden {
             display: none;
         }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
     <!-- Pantalla de Login -->
@@ -294,9 +285,13 @@
                 <input type="password" id="password" placeholder="Contraseña">
                 <button onclick="hacerLogin()">INGRESAR</button>
                 <div class="info-usuarios">
-                    <strong>Accesos:</strong><br>
-                    Admin: admin / admin123<br>
-                    Empleado: juan / juan123
+                    <strong>📋 Usuarios disponibles:</strong><br>
+                    👑 Admin: admin / admin123<br>
+                    👤 Empleado: juan / juan123<br>
+                    👤 Empleado: maria / maria123<br>
+                    <br>
+                    <strong>💡 Para agregar nuevos empleados:</strong><br>
+                    El administrador puede crearlos desde el panel.
                 </div>
             </div>
         </div>
@@ -404,7 +399,7 @@
                         <input type="text" id="modeloAuto" placeholder="Modelo del auto">
                         <input type="text" id="matriculaAuto" placeholder="Matrícula">
                         <select id="servicioSelect">
-                            <option value="">Cargando servicios...</option>
+                            <option value="">Seleccionar servicio</option>
                         </select>
                         <input type="number" id="precioFinal" placeholder="Precio" readonly>
                         <textarea id="observaciones" placeholder="Observaciones"></textarea>
@@ -427,77 +422,130 @@
     </div>
 
     <script>
-        // ==================== CONFIGURACIÓN SUPABASE ====================
-        const SUPABASE_URL = 'https://ldalildhdukyjnvmjlsg.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkYWxpbGRoZHVreWpudm1qbHNnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNzcxMTYsImV4cCI6MjA5MTg1MzExNn0.f-sLoQgbtBfqmoPweJ0am7pnCIGiaZhkGaAjc_s8Y8A';
+        // ==================== DATOS INICIALES ====================
         
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // Usuarios predefinidos
+        let usuarios = {
+            'admin': { password: 'admin123', nombre: 'Administrador', rol: 'admin' },
+            'juan': { password: 'juan123', nombre: 'Juan Pérez', rol: 'empleado' },
+            'maria': { password: 'maria123', nombre: 'María García', rol: 'empleado' }
+        };
+        
+        // Servicios
+        let servicios = [
+            { id: 1, nombre: 'Lavado Básico Auto', precio: 5000, comision: 1500, activo: true },
+            { id: 2, nombre: 'Lavado Completo Auto', precio: 8000, comision: 2400, activo: true },
+            { id: 3, nombre: 'Lavado Básico Moto', precio: 3000, comision: 900, activo: true }
+        ];
+        
+        // Lavados
+        let lavados = [];
+        
+        // Gastos
+        let gastos = [];
         
         let usuarioActual = null;
         
-        console.log('✅ Supabase inicializado correctamente');
+        // ==================== INICIALIZAR DATOS GUARDADOS ====================
+        
+        function cargarDatos() {
+            // Cargar empleados extra
+            let empleadosExtra = localStorage.getItem('empleadosExtra');
+            if (empleadosExtra) {
+                let extra = JSON.parse(empleadosExtra);
+                extra.forEach(e => {
+                    usuarios[e.user] = { password: e.pass, nombre: e.nombre, rol: 'empleado' };
+                });
+            }
+            
+            // Cargar servicios
+            let serviciosGuardados = localStorage.getItem('servicios');
+            if (serviciosGuardados) {
+                servicios = JSON.parse(serviciosGuardados);
+            }
+            
+            // Cargar lavados
+            let lavadosGuardados = localStorage.getItem('lavados');
+            if (lavadosGuardados) {
+                lavados = JSON.parse(lavadosGuardados);
+            }
+            
+            // Cargar gastos
+            let gastosGuardados = localStorage.getItem('gastos');
+            if (gastosGuardados) {
+                gastos = JSON.parse(gastosGuardados);
+            }
+        }
+        
+        function guardarEmpleados() {
+            let extra = [];
+            for (let u in usuarios) {
+                if (u !== 'admin' && u !== 'juan' && u !== 'maria') {
+                    extra.push({ user: u, nombre: usuarios[u].nombre, pass: usuarios[u].password });
+                }
+            }
+            localStorage.setItem('empleadosExtra', JSON.stringify(extra));
+        }
+        
+        function guardarServicios() {
+            localStorage.setItem('servicios', JSON.stringify(servicios));
+        }
+        
+        function guardarLavados() {
+            localStorage.setItem('lavados', JSON.stringify(lavados));
+        }
+        
+        function guardarGastos() {
+            localStorage.setItem('gastos', JSON.stringify(gastos));
+        }
         
         // ==================== LOGIN ====================
-        window.hacerLogin = async function() {
+        
+        window.hacerLogin = function() {
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
             const msgDiv = document.getElementById('msgLogin');
+            
+            cargarDatos();
             
             if (!username || !password) {
                 msgDiv.innerHTML = '<div class="error-msg">❌ Complete todos los campos</div>';
                 return;
             }
             
-            try {
-                console.log('Buscando usuario:', username);
-                
-                const { data: usuarios, error } = await supabase
-                    .from('empleados')
-                    .select('*')
-                    .eq('username', username)
-                    .eq('password', password);
-                
-                if (error) {
-                    console.error('Error de consulta:', error);
-                    msgDiv.innerHTML = '<div class="error-msg">❌ Error de conexión con la base de datos</div>';
-                    return;
-                }
-                
-                if (!usuarios || usuarios.length === 0) {
-                    msgDiv.innerHTML = '<div class="error-msg">❌ Usuario o contraseña incorrectos</div>';
-                    return;
-                }
-                
-                const usuario = usuarios[0];
-                usuarioActual = {
-                    id: usuario.id,
-                    username: usuario.username,
-                    nombre: usuario.nombre,
-                    rol: usuario.rol
-                };
-                
-                console.log('Login exitoso:', usuarioActual);
-                
-                // Ocultar login y mostrar panel correspondiente
-                document.getElementById('loginScreen').style.display = 'none';
-                
-                if (usuario.rol === 'admin') {
-                    document.getElementById('adminPanel').style.display = 'block';
-                    document.getElementById('userInfoAdmin').innerHTML = `👤 ${usuarioActual.nombre}`;
-                    await actualizarDashboard();
-                    await cargarServicios();
-                    await cargarEmpleados();
-                    await cargarHistorialAdmin();
-                } else {
-                    document.getElementById('empleadoPanel').style.display = 'block';
-                    document.getElementById('userInfoEmpleado').innerHTML = `👤 ${usuarioActual.nombre}`;
-                    await cargarServiciosSelect();
-                    await cargarMiHistorial();
-                }
-                
-            } catch (error) {
-                console.error('Error en login:', error);
-                msgDiv.innerHTML = '<div class="error-msg">❌ Error: ' + error.message + '</div>';
+            const usuario = usuarios[username];
+            
+            if (!usuario) {
+                msgDiv.innerHTML = '<div class="error-msg">❌ Usuario no existe</div>';
+                return;
+            }
+            
+            if (usuario.password !== password) {
+                msgDiv.innerHTML = '<div class="error-msg">❌ Contraseña incorrecta</div>';
+                return;
+            }
+            
+            usuarioActual = {
+                username: username,
+                nombre: usuario.nombre,
+                rol: usuario.rol
+            };
+            
+            // Ocultar login
+            document.getElementById('loginScreen').style.display = 'none';
+            
+            if (usuario.rol === 'admin') {
+                document.getElementById('adminPanel').style.display = 'block';
+                document.getElementById('userInfoAdmin').innerHTML = `👑 ${usuarioActual.nombre}`;
+                actualizarDashboard();
+                cargarListaServicios();
+                cargarListaEmpleados();
+                cargarHistorialAdmin();
+            } else {
+                document.getElementById('empleadoPanel').style.display = 'block';
+                document.getElementById('userInfoEmpleado').innerHTML = `👤 ${usuarioActual.nombre}`;
+                cargarSelectServicios();
+                cargarMiHistorial();
             }
         };
         
@@ -512,6 +560,7 @@
         };
         
         // ==================== ADMIN - DASHBOARD ====================
+        
         window.mostrarSeccion = function(seccion) {
             document.querySelectorAll('#adminPanel .seccion').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('#adminPanel .nav-btn').forEach(b => b.classList.remove('active'));
@@ -520,32 +569,25 @@
             event.target.classList.add('active');
             
             if (seccion === 'dashboard') actualizarDashboard();
-            if (seccion === 'precios') cargarServicios();
-            if (seccion === 'empleados') cargarEmpleados();
+            if (seccion === 'precios') cargarListaServicios();
+            if (seccion === 'empleados') cargarListaEmpleados();
             if (seccion === 'historial') cargarHistorialAdmin();
         };
         
-        async function actualizarDashboard() {
-            try {
-                const { data: lavados } = await supabase.from('lavados').select('*');
-                const { data: gastos } = await supabase.from('gastos').select('*');
-                
-                const totalVentas = (lavados || []).reduce((sum, l) => sum + (l.precio || 0), 0);
-                const totalGastos = (gastos || []).reduce((sum, g) => sum + (g.monto || 0), 0);
-                const ganancia = totalVentas - totalGastos;
-                
-                document.getElementById('statsGrid').innerHTML = `
-                    <div class="stat-card"><h3>💰 Ganancias</h3><div class="stat-value">$${totalVentas.toLocaleString()}</div></div>
-                    <div class="stat-card"><h3>💸 Gastos</h3><div class="stat-value">$${totalGastos.toLocaleString()}</div></div>
-                    <div class="stat-card"><h3>📈 Ganancia Neta</h3><div class="stat-value">$${ganancia.toLocaleString()}</div></div>
-                    <div class="stat-card"><h3>🚗 Lavados</h3><div class="stat-value">${lavados?.length || 0}</div></div>
-                `;
-            } catch (error) {
-                console.error('Error:', error);
-            }
+        function actualizarDashboard() {
+            const totalVentas = lavados.reduce((sum, l) => sum + l.precio, 0);
+            const totalGastos = gastos.reduce((sum, g) => sum + g.monto, 0);
+            const ganancia = totalVentas - totalGastos;
+            
+            document.getElementById('statsGrid').innerHTML = `
+                <div class="stat-card"><h3>💰 Ganancias</h3><div class="stat-value">$${totalVentas.toLocaleString()}</div></div>
+                <div class="stat-card"><h3>💸 Gastos</h3><div class="stat-value">$${totalGastos.toLocaleString()}</div></div>
+                <div class="stat-card"><h3>📈 Ganancia Neta</h3><div class="stat-value">$${ganancia.toLocaleString()}</div></div>
+                <div class="stat-card"><h3>🚗 Lavados</h3><div class="stat-value">${lavados.length}</div></div>
+            `;
         }
         
-        window.registrarGasto = async function() {
+        window.registrarGasto = function() {
             const concepto = document.getElementById('gastoConcepto').value;
             const monto = parseFloat(document.getElementById('gastoMonto').value);
             
@@ -554,130 +596,100 @@
                 return;
             }
             
-            try {
-                const { error } = await supabase.from('gastos').insert([{
-                    concepto: concepto,
-                    monto: monto,
-                    registrado_por: usuarioActual.username,
-                    fecha: new Date().toISOString()
-                }]);
-                
-                if (error) throw error;
-                
-                document.getElementById('gastoConcepto').value = '';
-                document.getElementById('gastoMonto').value = '';
-                
-                await actualizarDashboard();
-                alert('✅ Gasto registrado');
-                
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Error al registrar gasto');
-            }
+            gastos.push({
+                concepto: concepto,
+                monto: monto,
+                fecha: new Date().toISOString(),
+                registrado_por: usuarioActual.username
+            });
+            
+            guardarGastos();
+            
+            document.getElementById('gastoConcepto').value = '';
+            document.getElementById('gastoMonto').value = '';
+            
+            actualizarDashboard();
+            alert('✅ Gasto registrado');
         };
         
         // ==================== ADMIN - SERVICIOS ====================
-        async function cargarServicios() {
-            try {
-                const { data: servicios } = await supabase
-                    .from('servicios')
-                    .select('*')
-                    .eq('activo', true);
-                
-                let html = '';
-                (servicios || []).forEach(s => {
-                    html += `<tr>
-                        <td>${s.nombre}</td>
-                        <td>$${s.precio.toLocaleString()}</td>
-                        <td>$${s.comision.toLocaleString()}</td>
-                        <td><button onclick="eliminarServicio(${s.id})" class="btn-danger">Eliminar</button></td>
-                    </tr>`;
-                });
-                document.getElementById('listaServicios').innerHTML = html || '<tr><td colspan="4">No hay servicios</td></tr>';
-                
-            } catch (error) {
-                console.error('Error:', error);
-            }
+        
+        function cargarListaServicios() {
+            let html = '';
+            servicios.filter(s => s.activo).forEach(s => {
+                html += `<tr>
+                    <td>${s.nombre}</td>
+                    <td>$${s.precio.toLocaleString()}</td>
+                    <td>$${s.comision.toLocaleString()}</td>
+                    <td><button onclick="eliminarServicio(${s.id})" class="btn-danger">Eliminar</button></td>
+                </tr>`;
+            });
+            document.getElementById('listaServicios').innerHTML = html || '<tr><td colspan="4">No hay servicios</td>';
         }
         
-        window.agregarServicio = async function() {
+        window.agregarServicio = function() {
             const nombre = document.getElementById('nombreServicio').value;
             const precio = parseFloat(document.getElementById('precioServicio').value);
-            const comision = parseFloat(document.getElementById('comisionServicio').value);
+            let comision = parseFloat(document.getElementById('comisionServicio').value);
             
             if (!nombre || !precio) {
                 alert('Complete nombre y precio');
                 return;
             }
             
-            try {
-                const { error } = await supabase.from('servicios').insert([{
-                    nombre: nombre,
-                    precio: precio,
-                    comision: comision || precio * 0.3,
-                    activo: true
-                }]);
-                
-                if (error) throw error;
-                
-                document.getElementById('nombreServicio').value = '';
-                document.getElementById('precioServicio').value = '';
-                document.getElementById('comisionServicio').value = '';
-                
-                await cargarServicios();
-                alert('✅ Servicio agregado');
-                
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Error al agregar servicio');
+            if (isNaN(comision)) {
+                comision = precio * 0.3;
             }
+            
+            const nuevoServicio = {
+                id: Date.now(),
+                nombre: nombre,
+                precio: precio,
+                comision: comision,
+                activo: true
+            };
+            
+            servicios.push(nuevoServicio);
+            guardarServicios();
+            
+            document.getElementById('nombreServicio').value = '';
+            document.getElementById('precioServicio').value = '';
+            document.getElementById('comisionServicio').value = '';
+            
+            cargarListaServicios();
+            alert('✅ Servicio agregado');
         };
         
-        window.eliminarServicio = async function(id) {
+        window.eliminarServicio = function(id) {
             if (!confirm('¿Eliminar este servicio?')) return;
             
-            try {
-                const { error } = await supabase
-                    .from('servicios')
-                    .update({ activo: false })
-                    .eq('id', id);
-                
-                if (error) throw error;
-                
-                await cargarServicios();
+            const servicio = servicios.find(s => s.id === id);
+            if (servicio) {
+                servicio.activo = false;
+                guardarServicios();
+                cargarListaServicios();
                 alert('✅ Servicio eliminado');
-                
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Error al eliminar servicio');
             }
         };
         
         // ==================== ADMIN - EMPLEADOS ====================
-        async function cargarEmpleados() {
-            try {
-                const { data: empleados } = await supabase
-                    .from('empleados')
-                    .select('*')
-                    .neq('rol', 'admin');
-                
-                let html = '';
-                (empleados || []).forEach(e => {
+        
+        function cargarListaEmpleados() {
+            let html = '';
+            for (let u in usuarios) {
+                if (usuarios[u].rol === 'empleado') {
                     html += `<tr>
-                        <td>${e.username}</td>
-                        <td>${e.nombre}</td>
-                        <td>${e.activo ? 'Activo' : 'Inactivo'}</td>
-                        <td><button onclick="eliminarEmpleado('${e.id}')" class="btn-danger">Eliminar</button></td>
+                        <td>${u}</td>
+                        <td>${usuarios[u].nombre}</td>
+                        <td>Activo</td>
+                        <td><button onclick="eliminarEmpleado('${u}')" class="btn-danger">Eliminar</button></td>
                     </tr>`;
-                });
-                document.getElementById('listaEmpleados').innerHTML = html || '<tr><td colspan="4">No hay empleados</td></tr>';
-                
-            } catch (error) {
-                console.error('Error:', error);
+                }
             }
+            document.getElementById('listaEmpleados').innerHTML = html || '<tr><td colspan="4">No hay empleados</td>';
         }
         
-        window.agregarEmpleado = async function() {
+        window.agregarEmpleado = function() {
             const username = document.getElementById('userEmpleado').value;
             const nombre = document.getElementById('nombreEmpleado').value;
             const password = document.getElementById('passEmpleado').value;
@@ -687,77 +699,55 @@
                 return;
             }
             
-            try {
-                const { error } = await supabase.from('empleados').insert([{
-                    username: username,
-                    nombre: nombre,
-                    password: password,
-                    rol: 'empleado',
-                    activo: true
-                }]);
-                
-                if (error) throw error;
-                
-                document.getElementById('userEmpleado').value = '';
-                document.getElementById('nombreEmpleado').value = '';
-                document.getElementById('passEmpleado').value = '';
-                
-                await cargarEmpleados();
-                alert('✅ Empleado agregado');
-                
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Error al agregar empleado');
+            if (usuarios[username]) {
+                alert('El usuario ya existe');
+                return;
             }
+            
+            usuarios[username] = {
+                password: password,
+                nombre: nombre,
+                rol: 'empleado'
+            };
+            
+            guardarEmpleados();
+            
+            document.getElementById('userEmpleado').value = '';
+            document.getElementById('nombreEmpleado').value = '';
+            document.getElementById('passEmpleado').value = '';
+            
+            cargarListaEmpleados();
+            alert('✅ Empleado agregado');
         };
         
-        window.eliminarEmpleado = async function(id) {
+        window.eliminarEmpleado = function(username) {
             if (!confirm('¿Eliminar este empleado?')) return;
             
-            try {
-                const { error } = await supabase
-                    .from('empleados')
-                    .update({ activo: false })
-                    .eq('id', id);
-                
-                if (error) throw error;
-                
-                await cargarEmpleados();
-                alert('✅ Empleado eliminado');
-                
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Error al eliminar empleado');
-            }
+            delete usuarios[username];
+            guardarEmpleados();
+            cargarListaEmpleados();
+            alert('✅ Empleado eliminado');
         };
         
         // ==================== ADMIN - HISTORIAL ====================
-        async function cargarHistorialAdmin() {
-            try {
-                const { data: lavados } = await supabase
-                    .from('lavados')
-                    .select('*')
-                    .order('fecha', { ascending: false });
-                
-                let html = '';
-                (lavados || []).forEach(l => {
-                    html += `<tr>
-                        <td>${new Date(l.fecha).toLocaleDateString()}</td>
-                        <td>${l.empleado_username}</td>
-                        <td>${l.modelo_auto}</td>
-                        <td>${l.matricula}</td>
-                        <td>${l.servicio}</td>
-                        <td>$${l.precio.toLocaleString()}</td>
-                    </tr>`;
-                });
-                document.getElementById('listaHistorial').innerHTML = html || '<tr><td colspan="6">No hay lavados</td></tr>';
-                
-            } catch (error) {
-                console.error('Error:', error);
-            }
+        
+        function cargarHistorialAdmin() {
+            let html = '';
+            [...lavados].reverse().forEach(l => {
+                html += `<tr>
+                    <td>${new Date(l.fecha).toLocaleDateString()}</td>
+                    <td>${l.empleado}</td>
+                    <td>${l.modelo}</td>
+                    <td>${l.matricula}</td>
+                    <td>${l.servicio}</td>
+                    <td>$${l.precio.toLocaleString()}</td>
+                </tr>`;
+            });
+            document.getElementById('listaHistorial').innerHTML = html || '<tr><td colspan="6">No hay lavados</td>';
         }
         
         // ==================== EMPLEADO - FUNCIONES ====================
+        
         window.mostrarSeccionEmpleado = function(seccion) {
             document.querySelectorAll('#empleadoPanel .seccion').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('#empleadoPanel .nav-btn').forEach(b => b.classList.remove('active'));
@@ -768,36 +758,26 @@
             if (seccion === 'historial') cargarMiHistorial();
         };
         
-        async function cargarServiciosSelect() {
-            try {
-                const { data: servicios } = await supabase
-                    .from('servicios')
-                    .select('*')
-                    .eq('activo', true);
-                
-                const select = document.getElementById('servicioSelect');
-                select.innerHTML = '<option value="">Seleccionar servicio</option>';
-                
-                (servicios || []).forEach(s => {
-                    const option = document.createElement('option');
-                    option.value = JSON.stringify(s);
-                    option.textContent = `${s.nombre} - $${s.precio.toLocaleString()}`;
-                    select.appendChild(option);
-                });
-                
-                select.onchange = function() {
-                    if (this.value) {
-                        const s = JSON.parse(this.value);
-                        document.getElementById('precioFinal').value = s.precio;
-                    }
-                };
-                
-            } catch (error) {
-                console.error('Error:', error);
-            }
+        function cargarSelectServicios() {
+            const select = document.getElementById('servicioSelect');
+            select.innerHTML = '<option value="">Seleccionar servicio</option>';
+            
+            servicios.filter(s => s.activo).forEach(s => {
+                const option = document.createElement('option');
+                option.value = JSON.stringify(s);
+                option.textContent = `${s.nombre} - $${s.precio.toLocaleString()}`;
+                select.appendChild(option);
+            });
+            
+            select.onchange = function() {
+                if (this.value) {
+                    const s = JSON.parse(this.value);
+                    document.getElementById('precioFinal').value = s.precio;
+                }
+            };
         }
         
-        window.registrarLavado = async function() {
+        window.registrarLavado = function() {
             const servicioStr = document.getElementById('servicioSelect').value;
             
             if (!servicioStr) {
@@ -814,70 +794,57 @@
                 return;
             }
             
-            try {
-                const { error } = await supabase.from('lavados').insert([{
-                    empleado_id: usuarioActual.id,
-                    empleado_username: usuarioActual.username,
-                    modelo_auto: modelo,
-                    matricula: matricula,
-                    servicio: servicio.nombre,
-                    precio: parseFloat(document.getElementById('precioFinal').value),
-                    comision: servicio.comision,
-                    observaciones: document.getElementById('observaciones').value,
-                    fecha: new Date().toISOString()
-                }]);
-                
-                if (error) throw error;
-                
-                document.getElementById('modeloAuto').value = '';
-                document.getElementById('matriculaAuto').value = '';
-                document.getElementById('observaciones').value = '';
-                document.getElementById('servicioSelect').value = '';
-                document.getElementById('precioFinal').value = '';
-                
-                alert('✅ Lavado registrado');
-                await cargarMiHistorial();
-                
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Error al registrar lavado');
-            }
+            const nuevoLavado = {
+                empleado: usuarioActual.username,
+                modelo: modelo,
+                matricula: matricula,
+                servicio: servicio.nombre,
+                precio: parseFloat(document.getElementById('precioFinal').value),
+                comision: servicio.comision,
+                observaciones: document.getElementById('observaciones').value,
+                fecha: new Date().toISOString()
+            };
+            
+            lavados.push(nuevoLavado);
+            guardarLavados();
+            
+            document.getElementById('modeloAuto').value = '';
+            document.getElementById('matriculaAuto').value = '';
+            document.getElementById('observaciones').value = '';
+            document.getElementById('servicioSelect').value = '';
+            document.getElementById('precioFinal').value = '';
+            
+            alert('✅ Lavado registrado');
+            cargarMiHistorial();
         };
         
-        async function cargarMiHistorial() {
-            try {
-                const { data: lavados } = await supabase
-                    .from('lavados')
-                    .select('*')
-                    .eq('empleado_username', usuarioActual.username)
-                    .order('fecha', { ascending: false });
-                
-                const totalComisiones = (lavados || []).reduce((sum, l) => sum + (l.comision || 0), 0);
-                
-                document.getElementById('statsEmpleado').innerHTML = `
-                    <div class="stat-card"><h3>💰 Total Comisiones</h3><div class="stat-value">$${totalComisiones.toLocaleString()}</div></div>
-                    <div class="stat-card"><h3>🚗 Lavados Realizados</h3><div class="stat-value">${lavados?.length || 0}</div></div>
-                `;
-                
-                let html = '';
-                (lavados || []).forEach(l => {
-                    html += `<tr>
-                        <td>${new Date(l.fecha).toLocaleDateString()}</td>
-                        <td>${l.modelo_auto}</td>
-                        <td>${l.matricula}</td>
-                        <td>${l.servicio}</td>
-                        <td>$${l.precio.toLocaleString()}</td>
-                        <td>$${l.comision.toLocaleString()}</td>
-                    </tr>`;
-                });
-                document.getElementById('miHistorial').innerHTML = html || '<tr><td colspan="6">No hay lavados</td></tr>';
-                
-            } catch (error) {
-                console.error('Error:', error);
-            }
+        function cargarMiHistorial() {
+            const misLavados = lavados.filter(l => l.empleado === usuarioActual.username);
+            const totalComisiones = misLavados.reduce((sum, l) => sum + l.comision, 0);
+            
+            document.getElementById('statsEmpleado').innerHTML = `
+                <div class="stat-card"><h3>💰 Total Comisiones</h3><div class="stat-value">$${totalComisiones.toLocaleString()}</div></div>
+                <div class="stat-card"><h3>🚗 Lavados Realizados</h3><div class="stat-value">${misLavados.length}</div></div>
+            `;
+            
+            let html = '';
+            [...misLavados].reverse().forEach(l => {
+                html += `<tr>
+                    <td>${new Date(l.fecha).toLocaleDateString()}</td>
+                    <td>${l.modelo}</td>
+                    <td>${l.matricula}</td>
+                    <td>${l.servicio}</td>
+                    <td>$${l.precio.toLocaleString()}</td>
+                    <td>$${l.comision.toLocaleString()}</td>
+                </tr>`;
+            });
+            document.getElementById('miHistorial').innerHTML = html || '<tr><td colspan="6">No hay lavados</td>';
         }
         
-        console.log('✅ Aplicación lista. Esperando login...');
+        // ==================== INICIALIZAR ====================
+        
+        cargarDatos();
+        console.log('✅ Sistema listo');
     </script>
 </body>
 </html>

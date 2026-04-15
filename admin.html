@@ -21,14 +21,12 @@
             min-height: 100vh;
         }
 
-        /* Mobile First Layout */
         .app-container {
             display: flex;
             flex-direction: column;
             min-height: 100vh;
         }
 
-        /* Header */
         .header {
             background: #0f0f0f;
             padding: 16px;
@@ -49,7 +47,6 @@
             color: #6b7280;
         }
 
-        /* Navigation - Mobile Bottom Bar */
         .nav-bottom {
             position: fixed;
             bottom: 0;
@@ -91,14 +88,12 @@
             font-size: 1.3rem;
         }
 
-        /* Main Content */
         .main-content {
             padding: 16px;
             padding-bottom: 80px;
             flex: 1;
         }
 
-        /* Cards */
         .card {
             background: #1a1a1a;
             border-radius: 16px;
@@ -114,7 +109,6 @@
             color: #eab308;
         }
 
-        /* Stats Grid */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -149,7 +143,6 @@
             color: #ef4444;
         }
 
-        /* Forms */
         input, select, textarea {
             width: 100%;
             padding: 12px;
@@ -206,7 +199,6 @@
             margin: 0;
         }
 
-        /* Tables - Mobile friendly */
         .table-container {
             overflow-x: auto;
         }
@@ -230,7 +222,6 @@
             border-bottom: 1px solid #2c2c2c;
         }
 
-        /* Filters */
         .filters {
             display: flex;
             flex-direction: column;
@@ -250,7 +241,6 @@
             padding: 10px;
         }
 
-        /* Hide/Show panels */
         .panel {
             display: none;
         }
@@ -259,7 +249,6 @@
             display: block;
         }
 
-        /* Login Section */
         .login-container {
             display: flex;
             align-items: center;
@@ -284,13 +273,11 @@
             color: #dc2626;
         }
 
-        /* Chart */
         canvas {
             max-height: 250px;
             width: 100% !important;
         }
 
-        /* Recent activity */
         .recent-item {
             display: flex;
             justify-content: space-between;
@@ -314,80 +301,6 @@
             align-items: center;
             justify-content: center;
             font-size: 1rem;
-        }
-
-        /* Desktop adjustments */
-        @media (min-width: 768px) {
-            .main-content {
-                max-width: 1200px;
-                margin: 0 auto;
-                padding: 24px;
-            }
-            
-            .stats-grid {
-                grid-template-columns: repeat(4, 1fr);
-            }
-            
-            .filters {
-                flex-direction: row;
-                flex-wrap: wrap;
-                align-items: center;
-            }
-            
-            .filters-row {
-                flex: 1;
-            }
-            
-            .nav-bottom {
-                display: none;
-            }
-            
-            /* Desktop sidebar */
-            .desktop-sidebar {
-                display: flex;
-            }
-            
-            .app-container {
-                flex-direction: row;
-            }
-            
-            .sidebar-desktop {
-                width: 260px;
-                background: #0f0f0f;
-                border-right: 1px solid #2c2c2c;
-                min-height: 100vh;
-                position: sticky;
-                top: 0;
-            }
-            
-            .main-content-desktop {
-                flex: 1;
-            }
-            
-            .nav-desktop {
-                display: flex;
-                flex-direction: column;
-                padding: 16px;
-            }
-            
-            .nav-desktop .nav-item {
-                flex-direction: row;
-                justify-content: flex-start;
-                gap: 12px;
-                margin-bottom: 4px;
-            }
-        }
-
-        @media (max-width: 767px) {
-            .sidebar-desktop {
-                display: none;
-            }
-        }
-
-        @media (min-width: 768px) {
-            .nav-bottom {
-                display: none;
-            }
         }
 
         .badge {
@@ -418,6 +331,51 @@
         .hidden {
             display: none;
         }
+
+        /* Botón flotante para crear admin */
+        .floating-btn {
+            position: fixed;
+            bottom: 80px;
+            right: 16px;
+            background: #1f2937;
+            color: #9ca3af;
+            width: auto;
+            padding: 8px 16px;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            z-index: 200;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .floating-btn:hover {
+            background: #374151;
+            color: white;
+        }
+
+        @media (min-width: 768px) {
+            .main-content {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 24px;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+            .filters {
+                flex-direction: row;
+                flex-wrap: wrap;
+                align-items: center;
+            }
+            .filters-row {
+                flex: 1;
+            }
+            .floating-btn {
+                bottom: 24px;
+                right: 24px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -432,237 +390,171 @@
     </div>
 
     <div id="appContainer" class="app-container" style="display: none;">
-        <!-- Desktop Sidebar -->
-        <div class="sidebar-desktop">
-            <div style="padding: 20px; border-bottom: 1px solid #2c2c2c;">
-                <h2 style="color: #dc2626; font-size: 1.3rem;">Raptor Car Wash</h2>
-                <p style="font-size: 0.7rem; color: #6b7280;">Administración</p>
-            </div>
-            <div class="nav-desktop">
-                <div class="nav-item active" data-nav="dashboard">
-                    <span class="nav-icon">📊</span>
-                    <span>Dashboard</span>
-                </div>
-                <div class="nav-item" data-nav="employees">
-                    <span class="nav-icon">👥</span>
-                    <span>Empleados</span>
-                </div>
-                <div class="nav-item" data-nav="services">
-                    <span class="nav-icon">🧼</span>
-                    <span>Servicios</span>
-                </div>
-                <div class="nav-item" data-nav="expenses">
-                    <span class="nav-icon">💰</span>
-                    <span>Gastos</span>
-                </div>
-                <div class="nav-item" data-nav="reports">
-                    <span class="nav-icon">📈</span>
-                    <span>Reportes</span>
-                </div>
-                <div class="nav-item" id="logoutDesktopBtn">
-                    <span class="nav-icon">🚪</span>
-                    <span>Cerrar Sesión</span>
-                </div>
-            </div>
+        <div class="header">
+            <h1 id="pageTitle">Dashboard</h1>
+            <p>Panel de control principal</p>
         </div>
 
-        <!-- Main Content -->
-        <div class="main-content-desktop">
-            <div class="header">
-                <h1 id="pageTitle">Dashboard</h1>
-                <p>Panel de control principal</p>
+        <div class="main-content">
+            <!-- Panel Dashboard -->
+            <div id="dashboardPanel" class="panel active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Ingresos Totales</div>
+                        <div class="stat-value positive" id="totalIngresos">$0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Gastos Totales</div>
+                        <div class="stat-value negative" id="totalGastos">$0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Ganancia Neta</div>
+                        <div class="stat-value" id="gananciaNeta">$0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Total Lavados</div>
+                        <div class="stat-value" id="totalLavados">0</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">Ganancias por Empleado</div>
+                    <canvas id="gananciasChart"></canvas>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">Actividad Reciente</div>
+                    <div id="recentActivity"></div>
+                </div>
             </div>
 
-            <div class="main-content">
-                <!-- Panel Dashboard -->
-                <div id="dashboardPanel" class="panel active">
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-label">Ingresos Totales</div>
-                            <div class="stat-value positive" id="totalIngresos">$0</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Gastos Totales</div>
-                            <div class="stat-value negative" id="totalGastos">$0</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Ganancia Neta</div>
-                            <div class="stat-value" id="gananciaNeta">$0</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Total Lavados</div>
-                            <div class="stat-value" id="totalLavados">0</div>
-                        </div>
-                    </div>
-
-                    <div class="card">
-                        <div class="card-title">Ganancias por Empleado</div>
-                        <canvas id="gananciasChart"></canvas>
-                    </div>
-
-                    <div class="card">
-                        <div class="card-title">Actividad Reciente</div>
-                        <div id="recentActivity"></div>
-                    </div>
+            <!-- Panel Empleados -->
+            <div id="employeesPanel" class="panel">
+                <div class="card">
+                    <div class="card-title">Agregar Empleado</div>
+                    <input type="text" id="empNombre" placeholder="Nombre completo">
+                    <input type="email" id="empEmail" placeholder="Correo electrónico">
+                    <input type="password" id="empPassword" placeholder="Contraseña temporal">
+                    <button id="crearEmpleadoBtn" class="btn-success">Agregar Empleado</button>
                 </div>
 
-                <!-- Panel Empleados -->
-                <div id="employeesPanel" class="panel">
-                    <div class="card">
-                        <div class="card-title">Agregar Empleado</div>
-                        <input type="text" id="empNombre" placeholder="Nombre completo">
-                        <input type="email" id="empEmail" placeholder="Correo electrónico">
-                        <input type="password" id="empPassword" placeholder="Contraseña temporal">
-                        <button id="crearEmpleadoBtn" class="btn-success">Agregar Empleado</button>
-                    </div>
-
-                    <div class="card">
-                        <div class="card-title">Lista de Empleados</div>
-                        <div class="table-container">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Nombre</th>
-                                        <th>Email</th>
-                                        <th>Lavados</th>
-                                        <th>Comisión</th>
-                                        <th></th>
-                                    </tr>
-                                </thead>
-                                <tbody id="empleadosList"></tbody>
-                            </table>
-                        </div>
+                <div class="card">
+                    <div class="card-title">Lista de Empleados</div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr><th>Nombre</th><th>Email</th><th>Lavados</th><th>Comisión</th><th></th></tr>
+                            </thead>
+                            <tbody id="empleadosList"></tbody>
+                        </table>
                     </div>
                 </div>
+            </div>
 
-                <!-- Panel Servicios -->
-                <div id="servicesPanel" class="panel">
-                    <div class="card">
-                        <div class="card-title">Agregar Servicio</div>
-                        <input type="text" id="tipoNombre" placeholder="Nombre del servicio">
-                        <select id="tipoVehiculo">
-                            <option value="Auto">Auto</option>
-                            <option value="Moto">Moto</option>
-                        </select>
-                        <input type="number" id="tipoPrecio" placeholder="Precio total" step="0.01">
-                        <input type="number" id="tipoComision" placeholder="Comisión del empleado" step="0.01">
-                        <button id="crearTipoBtn" class="btn-primary">Agregar Servicio</button>
+            <!-- Panel Servicios -->
+            <div id="servicesPanel" class="panel">
+                <div class="card">
+                    <div class="card-title">Agregar Servicio</div>
+                    <input type="text" id="tipoNombre" placeholder="Nombre del servicio">
+                    <select id="tipoVehiculo">
+                        <option value="Auto">Auto</option>
+                        <option value="Moto">Moto</option>
+                    </select>
+                    <input type="number" id="tipoPrecio" placeholder="Precio total" step="0.01">
+                    <input type="number" id="tipoComision" placeholder="Comisión del empleado" step="0.01">
+                    <button id="crearTipoBtn" class="btn-primary">Agregar Servicio</button>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">Lista de Servicios</div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr><th>Nombre</th><th>Tipo</th><th>Precio</th><th>Comisión</th><th></th></tr>
+                            </thead>
+                            <tbody id="tiposList"></tbody>
+                        </table>
                     </div>
+                </div>
+            </div>
 
-                    <div class="card">
-                        <div class="card-title">Lista de Servicios</div>
-                        <div class="table-container">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Nombre</th>
-                                        <th>Tipo</th>
-                                        <th>Precio</th>
-                                        <th>Comisión</th>
-                                        <th></th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tiposList"></tbody>
-                            </table>
+            <!-- Panel Gastos -->
+            <div id="expensesPanel" class="panel">
+                <div class="card">
+                    <div class="card-title">Registrar Gasto</div>
+                    <input type="text" id="gastoConcepto" placeholder="Concepto">
+                    <select id="gastoCategoria">
+                        <option value="Agua">Agua</option>
+                        <option value="Electricidad">Electricidad</option>
+                        <option value="Productos">Productos</option>
+                        <option value="Mantenimiento">Mantenimiento</option>
+                        <option value="Sueldos">Sueldos</option>
+                        <option value="Otros">Otros</option>
+                    </select>
+                    <input type="number" id="gastoMonto" placeholder="Monto" step="0.01">
+                    <input type="date" id="gastoFecha">
+                    <button id="registrarGastoBtn" class="btn-warning">Registrar Gasto</button>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">Filtros</div>
+                    <div class="filters">
+                        <div class="filters-row">
+                            <input type="date" id="filtroFechaInicio" placeholder="Fecha inicio">
+                            <input type="date" id="filtroFechaFin" placeholder="Fecha fin">
+                        </div>
+                        <div class="filters-row">
+                            <select id="filtroCategoria">
+                                <option value="">Todas las categorías</option>
+                                <option value="Agua">Agua</option>
+                                <option value="Electricidad">Electricidad</option>
+                                <option value="Productos">Productos</option>
+                                <option value="Mantenimiento">Mantenimiento</option>
+                                <option value="Sueldos">Sueldos</option>
+                                <option value="Otros">Otros</option>
+                            </select>
+                            <button id="filtrarGastosBtn" class="btn-small">Filtrar</button>
                         </div>
                     </div>
                 </div>
 
-                <!-- Panel Gastos -->
-                <div id="expensesPanel" class="panel">
-                    <div class="card">
-                        <div class="card-title">Registrar Gasto</div>
-                        <input type="text" id="gastoConcepto" placeholder="Concepto">
-                        <select id="gastoCategoria">
-                            <option value="Agua">Agua</option>
-                            <option value="Electricidad">Electricidad</option>
-                            <option value="Productos">Productos</option>
-                            <option value="Mantenimiento">Mantenimiento</option>
-                            <option value="Sueldos">Sueldos</option>
-                            <option value="Otros">Otros</option>
-                        </select>
-                        <input type="number" id="gastoMonto" placeholder="Monto" step="0.01">
-                        <input type="date" id="gastoFecha">
-                        <button id="registrarGastoBtn" class="btn-warning">Registrar Gasto</button>
+                <div class="card">
+                    <div class="card-title">Historial de Gastos</div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr><th>Concepto</th><th>Categoría</th><th>Monto</th><th>Fecha</th><th></th></tr>
+                            </thead>
+                            <tbody id="gastosList"></tbody>
+                        </table>
                     </div>
+                    <div id="totalGastosFiltrados" style="margin-top: 16px; text-align: right; font-weight: bold;"></div>
+                </div>
+            </div>
 
-                    <div class="card">
-                        <div class="card-title">Filtros</div>
-                        <div class="filters">
-                            <div class="filters-row">
-                                <input type="date" id="filtroFechaInicio" placeholder="Fecha inicio">
-                                <input type="date" id="filtroFechaFin" placeholder="Fecha fin">
-                            </div>
-                            <div class="filters-row">
-                                <select id="filtroCategoria">
-                                    <option value="">Todas las categorías</option>
-                                    <option value="Agua">Agua</option>
-                                    <option value="Electricidad">Electricidad</option>
-                                    <option value="Productos">Productos</option>
-                                    <option value="Mantenimiento">Mantenimiento</option>
-                                    <option value="Sueldos">Sueldos</option>
-                                    <option value="Otros">Otros</option>
-                                </select>
-                                <button id="filtrarGastosBtn" class="btn-small">Filtrar</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="card">
-                        <div class="card-title">Historial de Gastos</div>
-                        <div class="table-container">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Concepto</th>
-                                        <th>Categoría</th>
-                                        <th>Monto</th>
-                                        <th>Fecha</th>
-                                        <th></th>
-                                    </tr>
-                                </thead>
-                                <tbody id="gastosList"></tbody>
-                            </table>
-                        </div>
-                        <div id="totalGastosFiltrados" style="margin-top: 16px; text-align: right; font-weight: bold;"></div>
+            <!-- Panel Reportes -->
+            <div id="reportsPanel" class="panel">
+                <div class="card">
+                    <div class="card-title">Rendimiento por Empleado</div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr><th>Empleado</th><th>Recaudado</th><th>Comisiones</th><th>Ganancia Local</th></tr>
+                            </thead>
+                            <tbody id="reporteEmpleados"></tbody>
+                        </table>
                     </div>
                 </div>
 
-                <!-- Panel Reportes -->
-                <div id="reportsPanel" class="panel">
-                    <div class="card">
-                        <div class="card-title">Rendimiento por Empleado</div>
-                        <div class="table-container">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Empleado</th>
-                                        <th>Recaudado</th>
-                                        <th>Comisiones</th>
-                                        <th>Ganancia Local</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="reporteEmpleados"></tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <div class="card">
-                        <div class="card-title">Estadísticas Mensuales</div>
-                        <div class="table-container">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Mes</th>
-                                        <th>Lavados</th>
-                                        <th>Ingresos</th>
-                                        <th>Gastos</th>
-                                        <th>Ganancia Neta</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="estadisticasMensuales"></tbody>
-                            </table>
-                        </div>
+                <div class="card">
+                    <div class="card-title">Estadísticas Mensuales</div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr><th>Mes</th><th>Lavados</th><th>Ingresos</th><th>Gastos</th><th>Ganancia Neta</th></tr>
+                            </thead>
+                            <tbody id="estadisticasMensuales"></tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -697,10 +589,17 @@
         </div>
     </div>
 
+    <!-- Botón flotante para crear usuario Valentin -->
+    <div id="crearAdminFloatBtn" class="floating-btn">
+        👑 Crear Usuario Valentin
+    </div>
+
     <script>
-        // Configuración de Supabase - CAMBIAR ESTOS VALORES
-        const SUPABASE_URL = 'https://rpdcdoydkiwwcprkyfes.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJwZGNkb3lka2l3d2Nwcmt5ZmVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNzIxNDMsImV4cCI6MjA5MTg0ODE0M30.s3rGGVYPhqKS4IGznUA6jODTNmerF5l341H56XlAlk4';
+        // ============================================
+        // CONFIGURACIÓN DE SUPABASE - CAMBIAR AQUÍ
+        // ============================================
+        const SUPABASE_URL = 'https://TU_PROYECTO.supabase.co';
+        const SUPABASE_ANON_KEY = 'TU_ANON_KEY';
         
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
@@ -708,7 +607,83 @@
         let gananciasChart = null;
         let tiposLavadoCache = [];
 
-        // ==================== AUTENTICACIÓN ====================
+        // ============================================
+        // FUNCIÓN PARA CREAR USUARIO VALENTIN
+        // ============================================
+        async function crearUsuarioValentin() {
+            const email = 'valentin@raptorcarwash.com';
+            const password = 'kirita2025';
+            const nombre = 'Valentin';
+            
+            // Mostrar mensaje de carga
+            const btn = document.getElementById('crearAdminFloatBtn');
+            const textoOriginal = btn.innerHTML;
+            btn.innerHTML = '⏳ Creando usuario...';
+            btn.style.opacity = '0.7';
+            
+            try {
+                // Intentar registrar el usuario
+                const { data, error } = await supabase.auth.signUp({
+                    email: email,
+                    password: password
+                });
+                
+                if (error) {
+                    // Si el usuario ya existe, intentar login
+                    if (error.message.includes('already registered') || error.message.includes('User already registered')) {
+                        const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
+                            email: email,
+                            password: password
+                        });
+                        
+                        if (loginError) throw loginError;
+                        
+                        // Crear/actualizar perfil
+                        const { error: perfilError } = await supabase
+                            .from('perfiles')
+                            .upsert({ 
+                                id: loginData.user.id, 
+                                nombre: nombre, 
+                                email: email, 
+                                rol: 'admin' 
+                            });
+                        
+                        if (perfilError) throw perfilError;
+                        
+                        alert('✅ Usuario Valentin ya existía. Se ha actualizado su rol a administrador.\n\nEmail: valentin@raptorcarwash.com\nContraseña: kirita2025');
+                    } else {
+                        throw error;
+                    }
+                } else {
+                    // Usuario nuevo, crear perfil
+                    const { error: perfilError } = await supabase
+                        .from('perfiles')
+                        .insert({ 
+                            id: data.user.id, 
+                            nombre: nombre, 
+                            email: email, 
+                            rol: 'admin' 
+                        });
+                    
+                    if (perfilError) throw perfilError;
+                    
+                    alert('✅ Usuario Valentin creado exitosamente como ADMINISTRADOR\n\n📧 Email: valentin@raptorcarwash.com\n🔑 Contraseña: kirita2025\n\nYa puedes iniciar sesión con estas credenciales.');
+                }
+                
+                console.log('Usuario Valentin listo para usar');
+                
+            } catch (error) {
+                console.error('Error detallado:', error);
+                alert('❌ Error al crear usuario: ' + error.message + '\n\nSi el error persiste, verifica que:\n1. Supabase esté configurado correctamente\n2. La tabla "perfiles" exista\n3. Las políticas RLS estén configuradas');
+            } finally {
+                btn.innerHTML = textoOriginal;
+                btn.style.opacity = '1';
+            }
+        }
+
+        // ============================================
+        // FUNCIONES DE AUTENTICACIÓN
+        // ============================================
         async function checkSession() {
             const { data: { user } } = await supabase.auth.getUser();
             return user;
@@ -730,7 +705,9 @@
             return data?.rol === 'admin';
         }
 
-        // ==================== DASHBOARD ====================
+        // ============================================
+        // FUNCIONES DEL DASHBOARD
+        // ============================================
         async function loadEstadisticasGenerales() {
             const { data: lavados } = await supabase.from('lavados').select('precio_final, comision_ganada');
             const { data: gastos } = await supabase.from('gastos').select('monto');
@@ -831,7 +808,9 @@
             });
         }
 
-        // ==================== EMPLEADOS ====================
+        // ============================================
+        // FUNCIONES DE EMPLEADOS
+        // ============================================
         async function loadEmpleados() {
             const { data } = await supabase.from('perfiles').select('*').eq('rol', 'empleado');
             const container = document.getElementById('empleadosList');
@@ -883,7 +862,9 @@
             await supabase.from('perfiles').insert([{ id: user.id, nombre, email, rol: 'empleado' }]);
         }
 
-        // ==================== SERVICIOS ====================
+        // ============================================
+        // FUNCIONES DE SERVICIOS
+        // ============================================
         async function loadTipos() {
             const { data } = await supabase.from('tipos_lavado').select('*').order('id');
             tiposLavadoCache = data || [];
@@ -920,7 +901,9 @@
             await supabase.from('tipos_lavado').insert([{ nombre, tipo_vehiculo, precio_total, comision_empleado }]);
         }
 
-        // ==================== GASTOS ====================
+        // ============================================
+        // FUNCIONES DE GASTOS
+        // ============================================
         async function loadGastos(filtros = {}) {
             let query = supabase.from('gastos').select('*').order('fecha', { ascending: false });
             if (filtros.fechaInicio) query = query.gte('fecha', filtros.fechaInicio);
@@ -976,7 +959,9 @@
             await loadGastos(filtros);
         }
 
-        // ==================== REPORTES ====================
+        // ============================================
+        // FUNCIONES DE REPORTES
+        // ============================================
         async function loadReporteEmpleados() {
             const { data: empleados } = await supabase.from('perfiles').select('id, nombre').eq('rol', 'empleado');
             const container = document.getElementById('reporteEmpleados');
@@ -1032,7 +1017,9 @@
             });
         }
 
-        // ==================== NAVEGACIÓN ====================
+        // ============================================
+        // NAVEGACIÓN
+        // ============================================
         function switchPanel(panelId) {
             document.querySelectorAll('.panel').forEach(panel => {
                 panel.classList.remove('active');
@@ -1057,7 +1044,6 @@
             const titleEl = document.getElementById('pageTitle');
             if (titleEl) titleEl.innerText = titles[panelId] || 'Dashboard';
             
-            // Cargar datos según el panel
             if (panelId === 'dashboard') {
                 loadEstadisticasGenerales();
                 loadGraficoGanancias();
@@ -1074,7 +1060,9 @@
             }
         }
 
-        // ==================== INICIALIZACIÓN ====================
+        // ============================================
+        // INICIALIZACIÓN
+        // ============================================
         async function initApp() {
             const user = await checkSession();
             if (!user) return;
@@ -1090,23 +1078,22 @@
             document.getElementById('loginContainer').style.display = 'none';
             document.getElementById('appContainer').style.display = 'flex';
             
-            // Configurar navegación
             document.querySelectorAll('.nav-item[data-nav]').forEach(item => {
                 item.addEventListener('click', () => {
                     switchPanel(item.dataset.nav);
                 });
             });
             
-            document.getElementById('logoutDesktopBtn')?.addEventListener('click', logout);
             document.getElementById('logoutMobileBtn')?.addEventListener('click', logout);
             
-            // Cargar dashboard inicial
             await loadEstadisticasGenerales();
             await loadGraficoGanancias();
             await loadRecentActivity();
         }
 
-        // Eventos de login
+        // ============================================
+        // EVENTOS
+        // ============================================
         document.getElementById('loginBtn').onclick = async () => {
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
@@ -1125,7 +1112,6 @@
             }
         };
 
-        // Eventos de formularios
         document.getElementById('crearEmpleadoBtn')?.addEventListener('click', async () => {
             const nombre = document.getElementById('empNombre').value;
             const email = document.getElementById('empEmail').value;
@@ -1185,6 +1171,9 @@
         });
         
         document.getElementById('filtrarGastosBtn')?.addEventListener('click', aplicarFiltrosGastos);
+        
+        // Botón flotante para crear usuario Valentin
+        document.getElementById('crearAdminFloatBtn')?.addEventListener('click', crearUsuarioValentin);
         
         // Verificar sesión al cargar
         checkSession().then(user => {

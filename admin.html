@@ -5,12 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RAPTOR CARWASH - Admin</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
     <div class="app-container">
         <aside class="sidebar">
             <div class="logo">
-                <h2>RAPTOR CARWASH</h2>
+                <h2>🦅 RAPTOR CARWASH</h2>
                 <p>Panel Administrador</p>
                 <p id="userInfo"></p>
             </div>
@@ -24,7 +25,6 @@
         </aside>
         
         <main class="main-content">
-            <!-- Dashboard -->
             <div id="seccion-dashboard" class="seccion active">
                 <h1>Dashboard</h1>
                 <div class="stats-grid" id="statsGrid"></div>
@@ -32,11 +32,10 @@
                     <h3>Registrar Gasto</h3>
                     <input type="text" id="gastoConcepto" placeholder="Concepto">
                     <input type="number" id="gastoMonto" placeholder="Monto">
-                    <button onclick="registrarGasto()">Registrar</button>
+                    <button onclick="registrarGasto()">Registrar Gasto</button>
                 </div>
             </div>
             
-            <!-- Precios -->
             <div id="seccion-precios" class="seccion">
                 <h1>Gestión de Precios</h1>
                 <div class="card">
@@ -49,15 +48,12 @@
                 <div class="card">
                     <h3>Lista de Servicios</h3>
                     <table class="data-table">
-                        <thead>
-                            <tr><th>Nombre</th><th>Precio</th><th>Comisión</th><th>Acciones</th></tr>
-                        </thead>
+                        <thead><tr><th>Nombre</th><th>Precio</th><th>Comisión</th><th>Acciones</th></tr></thead>
                         <tbody id="listaServicios"></tbody>
                     </table>
                 </div>
             </div>
             
-            <!-- Empleados -->
             <div id="seccion-empleados" class="seccion">
                 <h1>Gestión de Empleados</h1>
                 <div class="card">
@@ -70,28 +66,24 @@
                 <div class="card">
                     <h3>Lista de Empleados</h3>
                     <table class="data-table">
-                        <thead>
-                            <tr><th>Usuario</th><th>Nombre</th><th>Acciones</th></tr>
-                        </thead>
+                        <thead><tr><th>Usuario</th><th>Nombre</th><th>Estado</th><th>Acciones</th></tr></thead>
                         <tbody id="listaEmpleados"></tbody>
                     </table>
                 </div>
             </div>
             
-            <!-- Historial -->
             <div id="seccion-historial" class="seccion">
                 <h1>Historial de Lavados</h1>
                 <div class="card">
                     <table class="data-table">
-                        <thead>
-                            <tr><th>Fecha</th><th>Empleado</th><th>Modelo</th><th>Matrícula</th><th>Servicio</th><th>Precio</th></tr>
-                        </thead>
+                        <thead><tr><th>Fecha</th><th>Empleado</th><th>Modelo</th><th>Matrícula</th><th>Servicio</th><th>Precio</th></tr></thead>
                         <tbody id="listaHistorial"></tbody>
                     </table>
                 </div>
             </div>
         </main>
     </div>
+    <script src="config.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

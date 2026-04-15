@@ -4,150 +4,275 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Raptor Car Wash - Empleado</title>
-    <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="script.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0a0a;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            color: #e0e0e0;
+            padding: 16px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            color: #dc2626;
+            margin-bottom: 4px;
+        }
+
+        .subtitle {
+            color: #6b7280;
+            font-size: 0.8rem;
+            margin-bottom: 24px;
+        }
+
+        .card {
+            background: #1a1a1a;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            border: 1px solid #2c2c2c;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #eab308;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 12px;
+            background: #2a2a2a;
+            border: 1px solid #3f3f3f;
+            border-radius: 12px;
+            color: white;
+            font-size: 0.9rem;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #dc2626;
+        }
+
+        button {
+            background: #3f3f46;
+            border: none;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            width: 100%;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        button:active {
+            transform: scale(0.97);
+        }
+
+        .btn-primary {
+            background: #dc2626;
+        }
+
+        .btn-success {
+            background: #16a34a;
+        }
+
+        .btn-logout {
+            background: #3f3f46;
+            width: auto;
+            padding: 8px 16px;
+        }
+
+        .header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .preview-box {
+            background: #2a2a2a;
+            padding: 12px;
+            border-radius: 12px;
+            margin: 10px 0;
+            text-align: center;
+        }
+
+        .precio-final {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #4ade80;
+        }
+
+        .comision {
+            font-size: 1rem;
+            color: #eab308;
+        }
+
+        .lavado-item {
+            background: #2a2a2a;
+            padding: 12px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            border-left: 3px solid #dc2626;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #3f3f3f;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            margin-top: 6px;
+            margin-right: 6px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .stat-card {
+            background: #2a2a2a;
+            padding: 12px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            color: #6b7280;
+        }
+
+        .stat-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-top: 4px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .login-box {
+            background: #1a1a1a;
+            border-radius: 24px;
+            padding: 32px 24px;
+            margin-top: 50px;
+        }
+
+        .login-box h2 {
+            text-align: center;
+            margin-bottom: 24px;
+            color: #dc2626;
+        }
+    </style>
 </head>
 <body>
 <div class="container">
-    <h1>🦖 Raptor Car Wash</h1>
-    <p class="subtitle">Panel de Empleado</p>
-
-    <div id="loginSection" class="login-box">
-        <h2>Iniciar sesión</h2>
-        <input type="email" id="loginEmail" placeholder="Email">
-        <input type="password" id="loginPassword" placeholder="Contraseña">
-        <button id="loginBtn" class="btn-primary">Ingresar</button>
+    <div id="loginSection">
+        <div class="login-box">
+            <h2>Raptor Car Wash</h2>
+            <p style="text-align: center; margin-bottom: 24px; color: #6b7280;">Acceso Empleados</p>
+            <input type="email" id="loginEmail" placeholder="Correo electrónico">
+            <input type="password" id="loginPassword" placeholder="Contraseña">
+            <button id="loginBtn" class="btn-primary">Iniciar Sesión</button>
+        </div>
     </div>
 
     <div id="appSection" class="hidden">
         <div class="header-bar">
-            <span>Bienvenido, <strong id="empleadoNombre"></strong></span>
-            <button id="logoutBtnEmpleado" class="btn-logout">Salir</button>
+            <div>
+                <h1>Raptor Car Wash</h1>
+                <p class="subtitle">Bienvenido, <strong id="empleadoNombre"></strong></p>
+            </div>
+            <button id="logoutBtn" class="btn-logout">Salir</button>
         </div>
 
         <div class="card">
-            <h2>📝 Nuevo lavado</h2>
+            <div class="card-title">Registrar Lavado</div>
             <select id="tipoLavado"></select>
             <input type="text" id="matricula" placeholder="Matrícula del vehículo">
-            <textarea id="observaciones" placeholder="Observaciones (opcional)"></textarea>
+            <textarea id="observaciones" placeholder="Observaciones (opcional)" rows="3"></textarea>
             <div class="preview-box">
-                <div>💰 Precio final: <span class="precio-final" id="precioFinalMostrado">0</span></div>
-                <div>🧾 Tu comisión: <span class="comision" id="comisionMostrada">0</span></div>
+                <div>Precio final: <span class="precio-final" id="precioFinalMostrado">0</span></div>
+                <div>Tu comisión: <span class="comision" id="comisionMostrada">0</span></div>
             </div>
-            <button id="registrarBtn" class="btn-success">✅ Registrar lavado</button>
+            <button id="registrarBtn" class="btn-success">Registrar Lavado</button>
         </div>
 
         <div class="card">
-            <h2>📋 Mis lavados</h2>
-            <div id="historialLavados" class="historial"></div>
-        </div>
-
-        <div class="card">
-            <h2>📊 Mis estadísticas</h2>
-            <div class="stats-grid" style="grid-template-columns: 1fr;">
+            <div class="card-title">Mis Estadísticas</div>
+            <div class="stats-grid">
                 <div class="stat-card">
-                    <div class="stat-label">💰 Total recaudado</div>
-                    <div class="stat-value positive" id="miTotalRecaudado">$0</div>
+                    <div class="stat-label">Recaudado</div>
+                    <div class="stat-value" id="miTotalRecaudado">$0</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-label">🧾 Comisiones ganadas</div>
+                    <div class="stat-label">Comisiones</div>
                     <div class="stat-value" id="misComisiones">$0</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-label">🚗 Lavados realizados</div>
+                    <div class="stat-label">Lavados</div>
                     <div class="stat-value" id="misLavados">0</div>
                 </div>
             </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">Mis Últimos Lavados</div>
+            <div id="historialLavados"></div>
         </div>
     </div>
 </div>
 
 <script>
+    const SUPABASE_URL = 'https://TU_PROYECTO.supabase.co';
+    const SUPABASE_ANON_KEY = 'TU_ANON_KEY';
+    
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    
     let currentUser = null;
     let tiposLavado = [];
-    
-    async function initEmpleado() {
-        // Verificar sesión existente
-        const user = await window.checkSession();
-        if (user) {
-            const { data: perfil } = await window.supabaseClient.from('perfiles').select('*').eq('id', user.id).single();
-            if (perfil && perfil.rol === 'empleado') {
-                currentUser = { id: perfil.id, nombre: perfil.nombre };
-                showApp();
-            }
-        }
-        
-        // Login
-        document.getElementById('loginBtn').onclick = async () => {
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
-            
-            try {
-                const data = await window.login(email, password);
-                const { data: perfil } = await window.supabaseClient.from('perfiles').select('*').eq('id', data.user.id).single();
-                
-                if (!perfil || perfil.rol !== 'empleado') {
-                    await window.logout();
-                    alert('Acceso solo para empleados');
-                    return;
-                }
-                
-                currentUser = { id: perfil.id, nombre: perfil.nombre };
-                showApp();
-            } catch (error) {
-                alert('Error de login: ' + error.message);
-            }
-        };
-        
-        // Logout
-        document.getElementById('logoutBtnEmpleado').onclick = async () => {
-            await window.logout();
-            location.reload();
-        };
-        
-        // Registrar lavado
-        document.getElementById('registrarBtn').onclick = async () => {
-            const tipoId = parseInt(document.getElementById('tipoLavado').value);
-            const matricula = document.getElementById('matricula').value.trim();
-            const observaciones = document.getElementById('observaciones').value;
-            
-            if (!matricula) return alert('La matrícula es obligatoria');
-            
-            const tipoSeleccionado = tiposLavado.find(t => t.id === tipoId);
-            if (!tipoSeleccionado) return;
-            
-            try {
-                await window.registrarLavado(
-                    currentUser.id,
-                    tipoId,
-                    matricula,
-                    observaciones,
-                    tipoSeleccionado.precio_total,
-                    tipoSeleccionado.comision_empleado
-                );
-                alert('✅ Lavado registrado');
-                document.getElementById('matricula').value = '';
-                document.getElementById('observaciones').value = '';
-                await loadData();
-            } catch (error) {
-                alert('Error: ' + error.message);
-            }
-        };
-        
-        document.getElementById('tipoLavado').onchange = () => window.actualizarPrecioYComision();
+
+    async function checkSession() {
+        const { data: { user } } = await supabase.auth.getUser();
+        return user;
     }
-    
-    async function showApp() {
-        document.getElementById('loginSection').classList.add('hidden');
-        document.getElementById('appSection').classList.remove('hidden');
-        document.getElementById('empleadoNombre').innerText = currentUser.nombre;
-        await loadData();
+
+    async function login(email, password) {
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        return data;
     }
-    
-    async function loadData() {
-        // Cargar tipos de lavado
-        const { data } = await window.supabaseClient.from('tipos_lavado').select('*');
+
+    async function logout() {
+        await supabase.auth.signOut();
+        location.reload();
+    }
+
+    async function loadTipos() {
+        const { data } = await supabase.from('tipos_lavado').select('*');
         tiposLavado = data || [];
         const select = document.getElementById('tipoLavado');
         select.innerHTML = '';
@@ -159,16 +284,134 @@
             option.dataset.comision = t.comision_empleado;
             select.appendChild(option);
         });
-        window.actualizarPrecioYComision();
-        
-        // Cargar historial
-        await window.loadHistorialEmpleado(currentUser.id);
-        
-        // Cargar estadísticas personales
-        await window.loadMisEstadisticas(currentUser.id);
+        actualizarPrecioYComision();
     }
+
+    function actualizarPrecioYComision() {
+        const select = document.getElementById('tipoLavado');
+        const opt = select.options[select.selectedIndex];
+        if (opt) {
+            document.getElementById('precioFinalMostrado').innerText = opt.dataset.precio;
+            document.getElementById('comisionMostrada').innerText = opt.dataset.comision;
+        }
+    }
+
+    async function loadHistorial() {
+        if (!currentUser) return;
+        const { data } = await supabase.from('lavados')
+            .select(`id, matricula, observaciones, precio_final, comision_ganada, created_at, tipos_lavado(nombre)`)
+            .eq('empleado_id', currentUser.id)
+            .order('created_at', { ascending: false });
+        
+        const container = document.getElementById('historialLavados');
+        container.innerHTML = '';
+        if (!data || data.length === 0) {
+            container.innerHTML = '<div style="text-align: center; padding: 20px; color: #6b7280;">No hay lavados registrados</div>';
+            return;
+        }
+        
+        data.forEach(l => {
+            container.innerHTML += `
+                <div class="lavado-item">
+                    <div><strong>${l.tipos_lavado.nombre}</strong> - $${l.precio_final}</div>
+                    <div class="badge">${l.matricula}</div>
+                    <div class="badge">Comisión: $${l.comision_ganada}</div>
+                    <div class="badge">${new Date(l.created_at).toLocaleString()}</div>
+                    ${l.observaciones ? `<div class="badge">${l.observaciones}</div>` : ''}
+                </div>
+            `;
+        });
+    }
+
+    async function loadMisEstadisticas() {
+        if (!currentUser) return;
+        const { data: lavados } = await supabase.from('lavados')
+            .select('precio_final, comision_ganada')
+            .eq('empleado_id', currentUser.id);
+        
+        const total = lavados?.reduce((s, l) => s + l.precio_final, 0) || 0;
+        const comisiones = lavados?.reduce((s, l) => s + l.comision_ganada, 0) || 0;
+        const cantidad = lavados?.length || 0;
+        
+        document.getElementById('miTotalRecaudado').innerText = `$${total.toFixed(2)}`;
+        document.getElementById('misComisiones').innerText = `$${comisiones.toFixed(2)}`;
+        document.getElementById('misLavados').innerText = cantidad;
+    }
+
+    async function registrarLavado() {
+        const tipoId = parseInt(document.getElementById('tipoLavado').value);
+        const matricula = document.getElementById('matricula').value.trim();
+        const observaciones = document.getElementById('observaciones').value;
+        
+        if (!matricula) {
+            alert('La matrícula es obligatoria');
+            return;
+        }
+        
+        const tipo = tiposLavado.find(t => t.id === tipoId);
+        if (!tipo) return;
+        
+        const { error } = await supabase.from('lavados').insert([{
+            empleado_id: currentUser.id,
+            tipo_lavado_id: tipoId,
+            matricula,
+            observaciones,
+            precio_final: tipo.precio_total,
+            comision_ganada: tipo.comision_empleado
+        }]);
+        
+        if (error) {
+            alert('Error: ' + error.message);
+            return;
+        }
+        
+        alert('Lavado registrado exitosamente');
+        document.getElementById('matricula').value = '';
+        document.getElementById('observaciones').value = '';
+        await loadHistorial();
+        await loadMisEstadisticas();
+    }
+
+    async function initApp() {
+        const user = await checkSession();
+        if (!user) return;
+        
+        const { data: perfil } = await supabase.from('perfiles').select('*').eq('id', user.id).single();
+        if (!perfil || perfil.rol !== 'empleado') {
+            await logout();
+            alert('Acceso solo para empleados');
+            return;
+        }
+        
+        currentUser = { id: perfil.id, nombre: perfil.nombre };
+        document.getElementById('empleadoNombre').innerText = perfil.nombre;
+        document.getElementById('loginSection').classList.add('hidden');
+        document.getElementById('appSection').classList.remove('hidden');
+        
+        await loadTipos();
+        await loadHistorial();
+        await loadMisEstadisticas();
+        
+        document.getElementById('tipoLavado').onchange = actualizarPrecioYComision;
+        document.getElementById('registrarBtn').onclick = registrarLavado;
+        document.getElementById('logoutBtn').onclick = logout;
+    }
+
+    document.getElementById('loginBtn').onclick = async () => {
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+        
+        try {
+            await login(email, password);
+            await initApp();
+        } catch (error) {
+            alert('Error de inicio de sesión: ' + error.message);
+        }
+    };
     
-    initEmpleado();
+    checkSession().then(user => {
+        if (user) initApp();
+    });
 </script>
 </body>
 </html>

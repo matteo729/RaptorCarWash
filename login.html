@@ -36,13 +36,13 @@
         h1 {
             text-align: center;
             color: #1a1a2e;
-            margin-bottom: 5px;
+            margin-bottom: 10px;
         }
         
         .subtitle {
             text-align: center;
             color: #666;
-            margin-bottom: 25px;
+            margin-bottom: 30px;
             font-size: 14px;
         }
         
@@ -81,15 +81,6 @@
             background: #d63a55;
         }
         
-        .btn-secondary {
-            background: #6c757d;
-            color: white;
-        }
-        
-        .btn-secondary:hover {
-            background: #5a6268;
-        }
-        
         .message {
             padding: 10px;
             border-radius: 6px;
@@ -110,28 +101,24 @@
             border: 1px solid #c3e6cb;
         }
         
-        .info {
-            background: #d1ecf1;
-            color: #0c5460;
-            border: 1px solid #bee5eb;
-        }
-        
-        .divider {
-            text-align: center;
-            margin: 15px 0;
-            color: #999;
+        .info-usuarios {
+            margin-top: 20px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 6px;
             font-size: 12px;
+            color: #666;
+            text-align: left;
         }
         
-        .section-title {
-            font-size: 16px;
-            margin-bottom: 20px;
-            text-align: center;
-            font-weight: bold;
-            color: #333;
+        .info-usuarios p {
+            margin: 5px 0;
+        }
+        
+        .info-usuarios strong {
+            color: #e94560;
         }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
     <div class="login-container">
@@ -141,40 +128,51 @@
             
             <div id="messageBox"></div>
             
-            <!-- Login Section -->
-            <div id="loginSection">
-                <div class="section-title">INICIAR SESIÓN</div>
-                <input type="email" id="loginEmail" placeholder="Email">
-                <input type="password" id="loginPassword" placeholder="Contraseña">
-                <button id="loginBtn" class="btn-primary">INGRESAR</button>
-                <div class="divider">────────── o ──────────</div>
-                <button id="showRegisterBtn" class="btn-secondary">CREAR CUENTA</button>
-            </div>
+            <input type="text" id="loginUser" placeholder="Usuario">
+            <input type="password" id="loginPass" placeholder="Contraseña">
+            <button id="loginBtn" class="btn-primary">INICIAR SESIÓN</button>
             
-            <!-- Register Section -->
-            <div id="registerSection" style="display: none;">
-                <div class="section-title">CREAR CUENTA</div>
-                <input type="text" id="regNombre" placeholder="Nombre completo">
-                <input type="email" id="regEmail" placeholder="Email">
-                <input type="password" id="regPassword" placeholder="Contraseña (mínimo 6 caracteres)">
-                <button id="registerBtn" class="btn-primary">REGISTRARSE</button>
-                <div class="divider">────────── o ──────────</div>
-                <button id="showLoginBtn" class="btn-secondary">VOLVER AL LOGIN</button>
+            <div class="info-usuarios">
+                <p><strong>📋 Usuarios disponibles:</strong></p>
+                <p>👑 <strong>admin</strong> / admin123 (Administrador)</p>
+                <p>👤 <strong>juan</strong> / juan123 (Empleado)</p>
+                <p>👤 <strong>maria</strong> / maria123 (Empleado)</p>
+                <p style="margin-top: 8px; font-size: 11px;">💡 Para agregar nuevos empleados, edita el archivo login.html y agrega el usuario en la sección USUARIOS</p>
             </div>
         </div>
     </div>
 
     <script>
-        // Configuración de Supabase
-        const SUPABASE_URL = 'https://ldalildhdukyjnvmjlsg.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkYWxpbGRoZHVreWpudm1qbHNnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNzcxMTYsImV4cCI6MjA5MTg1MzExNn0.f-sLoQgbtBfqmoPweJ0am7pnCIGiaZhkGaAjc_s8Y8A';
+        // ==================== USUARIOS PREDEFINIDOS ====================
+        // Aquí puedes agregar más usuarios fácilmente
+        const USUARIOS = {
+            // Administrador
+            'admin': {
+                password: 'admin123',
+                rol: 'admin',
+                nombre: 'Administrador'
+            },
+            // Empleados
+            'juan': {
+                password: 'juan123',
+                rol: 'empleado',
+                nombre: 'Juan Pérez'
+            },
+            'maria': {
+                password: 'maria123',
+                rol: 'empleado',
+                nombre: 'María García'
+            }
+            // ==========================================
+            // 👇 AGREGAR NUEVOS EMPLEADOS AQUÍ:
+            // 'pedro': {
+            //     password: 'pedro123',
+            //     rol: 'empleado',
+            //     nombre: 'Pedro López'
+            // }
+            // ==========================================
+        };
         
-        // Inicializar Supabase
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        
-        console.log("✅ App iniciada");
-        
-        // Función para mostrar mensajes
         function showMessage(text, type) {
             const box = document.getElementById('messageBox');
             box.innerHTML = `<div class="message ${type}">${text}</div>`;
@@ -182,123 +180,58 @@
                 if (box.innerHTML === `<div class="message ${type}">${text}</div>`) {
                     box.innerHTML = '';
                 }
-            }, 5000);
+            }, 3000);
         }
         
-        // Cambiar entre secciones
-        document.getElementById('showRegisterBtn').onclick = () => {
-            document.getElementById('loginSection').style.display = 'none';
-            document.getElementById('registerSection').style.display = 'block';
-            document.getElementById('messageBox').innerHTML = '';
-        };
-        
-        document.getElementById('showLoginBtn').onclick = () => {
-            document.getElementById('loginSection').style.display = 'block';
-            document.getElementById('registerSection').style.display = 'none';
-            document.getElementById('messageBox').innerHTML = '';
-        };
-        
-        // FUNCIÓN DE REGISTRO
-        document.getElementById('registerBtn').onclick = async () => {
-            console.log("Registro: Iniciando...");
+        // Login
+        document.getElementById('loginBtn').onclick = function() {
+            const username = document.getElementById('loginUser').value.trim();
+            const password = document.getElementById('loginPass').value;
             
-            const nombre = document.getElementById('regNombre').value;
-            const email = document.getElementById('regEmail').value;
-            const password = document.getElementById('regPassword').value;
-            
-            if (!nombre || !email || !password) {
-                showMessage("Completa todos los campos", "error");
+            if (!username || !password) {
+                showMessage('❌ Ingresa usuario y contraseña', 'error');
                 return;
             }
             
-            if (password.length < 6) {
-                showMessage("La contraseña debe tener al menos 6 caracteres", "error");
+            const usuario = USUARIOS[username];
+            
+            if (!usuario) {
+                showMessage('❌ Usuario no existe', 'error');
                 return;
             }
             
-            showMessage("Creando usuario...", "info");
-            
-            try {
-                // Crear usuario
-                const { data, error } = await supabase.auth.signUp({
-                    email: email,
-                    password: password,
-                    options: {
-                        data: { full_name: nombre }
-                    }
-                });
-                
-                if (error) {
-                    console.error("Error registro:", error);
-                    showMessage("Error: " + error.message, "error");
-                    return;
-                }
-                
-                console.log("Usuario creado:", data);
-                showMessage("¡Usuario creado exitosamente! Ahora puedes iniciar sesión.", "success");
-                
-                // Limpiar y volver al login
-                document.getElementById('regNombre').value = '';
-                document.getElementById('regEmail').value = '';
-                document.getElementById('regPassword').value = '';
-                
-                setTimeout(() => {
-                    document.getElementById('showLoginBtn').click();
-                }, 2000);
-                
-            } catch (err) {
-                console.error("Error:", err);
-                showMessage("Error: " + err.message, "error");
-            }
-        };
-        
-        // FUNCIÓN DE LOGIN
-        document.getElementById('loginBtn').onclick = async () => {
-            console.log("Login: Iniciando...");
-            
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
-            
-            if (!email || !password) {
-                showMessage("Completa todos los campos", "error");
+            if (usuario.password !== password) {
+                showMessage('❌ Contraseña incorrecta', 'error');
                 return;
             }
             
-            showMessage("Iniciando sesión...", "info");
+            // Guardar datos del usuario en sessionStorage
+            sessionStorage.setItem('usuario', JSON.stringify({
+                username: username,
+                nombre: usuario.nombre,
+                rol: usuario.rol
+            }));
             
-            try {
-                const { data, error } = await supabase.auth.signInWithPassword({
-                    email: email,
-                    password: password
-                });
-                
-                if (error) {
-                    console.error("Error login:", error);
-                    showMessage("Error: " + error.message, "error");
-                    return;
-                }
-                
-                console.log("Login exitoso:", data);
-                showMessage("¡Bienvenido! Redirigiendo...", "success");
-                
-                setTimeout(() => {
+            showMessage(`✅ Bienvenido ${usuario.nombre}`, 'success');
+            
+            // Redirigir según rol
+            setTimeout(() => {
+                if (usuario.rol === 'admin') {
                     window.location.href = 'admin.html';
-                }, 1500);
-                
-            } catch (err) {
-                console.error("Error:", err);
-                showMessage("Error: " + err.message, "error");
-            }
+                } else {
+                    window.location.href = 'empleados.html';
+                }
+            }, 1000);
         };
         
-        // Enter key support
-        document.getElementById('loginPassword').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') document.getElementById('loginBtn').click();
+        // Permitir Enter
+        document.getElementById('loginPass').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('loginBtn').click();
+            }
         });
         
-        document.getElementById('regPassword').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') document.getElementById('registerBtn').click();
-        });
+        console.log("✅ Login listo. Usuarios cargados:", Object.keys(USUARIOS));
     </script>
 </body>
 </html>
